@@ -1,5 +1,6 @@
 import hashlib
 from pathlib import Path
+import json
 
 
 class File:
@@ -10,8 +11,8 @@ class File:
     def path(self):
         return self._path
 
-    def satus(self):
-        pass
+    def status(self):
+        return None
 
     def hash(self):
         return self._hash
@@ -40,5 +41,15 @@ def create_an_index(path):
     return index
 
 
-for file in create_an_index("/home/zgodek/pipr/antivirus/test_dir"):
-    print(file.path(), file.hash())
+def save_index_to_json(path):
+    index = create_an_index(path.rpartition('/')[0])
+    with open(path, 'w') as file_handle:
+        data = []
+        for file in index:
+            file_data = {
+                "path": str(file.path()),
+                "status": str(file.status()),
+                "hash": str(file.hash())
+            }
+            data.append(file_data)
+        json.dump(data, file_handle)
