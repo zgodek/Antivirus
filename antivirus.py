@@ -3,6 +3,8 @@ from pathlib import Path
 import json
 
 
+when_to_scan = []
+
 
 class File:
     def __init__(self, path):
@@ -124,3 +126,25 @@ def quick_scan(path):
                         remove_viruses(item_path, check_file(item_path))
                         files_with_viruses.append(item_path)
     return files_with_viruses
+
+
+def main():
+    anwser = ""
+    while anwser != "4":
+        anwser = input("Type:\n1 for full scan\n2 for quick scan\n3 to set the time when to perform a quick scan\n4 to shut down the program\n")
+        if anwser == "1":
+            path = input("Enter the path:\n")
+            print(full_scan(path))
+        elif anwser == "2":
+            path = input("Enter the path:\n")
+            print(quick_scan(path))
+        elif anwser == "3":
+            time = input("Enter the time in this format: hour:min:sec\n")
+            when_to_scan.append(time)
+        else:
+            continue
+    return
+
+
+if __name__ == "__main__":
+    main()
