@@ -59,7 +59,7 @@ def create_an_index(path):
 
 def save_index_to_json(path):
     index = create_an_index(path.rpartition('/')[0])
-    with open(path, 'w') as file_handle:
+    with open("/home/zgodek/pipr/antivirus/index.json", 'w') as file_handle:
         data = []
         for file in index:
             file_data = {
@@ -79,6 +79,13 @@ def remove_viruses(path, location):
 
 def check_file(path):
     infected = False
+    file = File(path)
+    path_database = '/home/zgodek/pipr/antivirus/database_md5'
+    path_database = Path(path_database)
+    for item_path in path_database.iterdir():
+        with open(item_path, 'r') as file_handle:
+            if file.hash_md5() in file_handle:
+                infected = True
     with open(path, 'rb') as file_handle:
         pass
     return infected
@@ -86,9 +93,34 @@ def check_file(path):
 
 def full_scan(path):
     path = Path(path)
+    files_with_viruses = []
     for item_path in path.iterdir():
         if item_path.is_dir():
-            full_scan(item_path)
+            files_with_viruses.append(full_scan(item_path))
         if item_path.is_file():
-            if check_file(item_path) not False:
+            if check_file(item_path) == True:
                 remove_viruses(item_path, check_file(item_path))
+                files_with_viruses.append(item_path)
+    return files_with_viruses
+
+
+def quick_scan(path):
+    path = Path(path)
+    files_with_viruses = []
+    for item_path in path.iterdir():
+        if item_path.is_dir():
+            files_with_viruses.append(quick_scan(item_path))
+        else:
+            file = File(item_path)
+            with open("/home/zgodek/pipr/antivirus/index.json", 'r') as file_handle:
+                data = json.load(file_handle)
+                is_in_index = False
+                for item in data:
+                    if item["hash_sh1"] == file.hash_sh1():
+                        is_in_index = True
+                        break
+                if is_in_index == False:
+                    if check_file(item_path) == True:
+                        remove_viruses(item_path, check_file(item_path))
+                        files_with_viruses.append(item_path)
+    return files_with_viruses
