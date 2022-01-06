@@ -60,7 +60,7 @@ def create_an_index(path):
 
 
 def save_index_to_json(path):
-    index = create_an_index(path.rpartition('/')[0])
+    index = create_an_index(path)
     with open("/home/zgodek/pipr/antivirus/index.json", 'w') as file_handle:
         data = []
         for file in index:
@@ -98,8 +98,10 @@ def full_scan(path):
     files_with_viruses = []
     for item_path in path.iterdir():
         if item_path.is_dir():
-            files_with_viruses.append(full_scan(item_path))
+            viruses_in_folder = full_scan(item_path)
+            files_with_viruses.extend(viruses_in_folder)
         if item_path.is_file():
+            print(item_path)
             if check_file(item_path) == True:
                 remove_viruses(item_path, check_file(item_path))
                 files_with_viruses.append(item_path)
