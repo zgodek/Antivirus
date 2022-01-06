@@ -3,13 +3,12 @@ from pathlib import Path
 import json
 
 
-methods = []
-
 
 class File:
     def __init__(self, path):
         self._path = path
-        self._hash = hash_a_file(self.path())
+        self._hash_md5 = hash_a_file_md5(self.path())
+        self._hash_sh1 = hash_a_file_sh1(self.path())
 
     def path(self):
         return self._path
@@ -17,18 +16,32 @@ class File:
     def status(self):
         return check_file(self.path())
 
-    def hash(self):
-        return self._hash
+    def hash_md5(self):
+        return self._hash_md5
+
+    def hash_sh1(self):
+        return self._hash_sh1
 
 
-def hash_a_file(path):
+def hash_a_file_sh1(path):
     BLOCKSIZE = 65536
     hasher = hashlib.sha1()
-    with open(path, 'rb') as afile:
-        buf = afile.read(BLOCKSIZE)
+    with open(path, 'rb') as file_handle:
+        buf = file_handle.read(BLOCKSIZE)
         while len(buf) > 0:
             hasher.update(buf)
-            buf = afile.read(BLOCKSIZE)
+            buf = file_handle.read(BLOCKSIZE)
+    return hasher.hexdigest()
+
+
+def hash_a_file_md5(path):
+    BLOCKSIZE = 65536
+    hasher = hashlib.md5()
+    with open(path, 'rb') as file_handle:
+        buf = file_handle.read(BLOCKSIZE)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = file_handle.read(BLOCKSIZE)
     return hasher.hexdigest()
 
 
@@ -52,22 +65,23 @@ def save_index_to_json(path):
             file_data = {
                 "path": str(file.path()),
                 "status": str(file.status()),
-                "hash": str(file.hash())
+                "hash_md5": str(file.hash_md5()),
+                "hash_sh1": str(file.hash_sh1())
             }
             data.append(file_data)
         json.dump(data, file_handle)
 
 
+def remove_viruses(path, location):
+    with open(path, 'wb') as file_handle:
+        pass
+
+
 def check_file(path):
-    with open(path, 'r') as file_handle:
-        viruses = {}
-        for line in file_handle:
-            for method in methods:
-                if method in line:
-                    viruses[method] = line
-        if viruses != {}:
-            return viruses
-        return False
+    infected = False
+    with open(path, 'rb') as file_handle:
+        pass
+    return infected
 
 
 def full_scan(path):
@@ -76,6 +90,5 @@ def full_scan(path):
         if item_path.is_dir():
             full_scan(item_path)
         if item_path.is_file():
-            if check_file(item_path) != False:
-                print(f"File {item_path} has a virus!")
+            if check_file(item_path) not False:
                 remove_viruses(item_path, check_file(item_path))
