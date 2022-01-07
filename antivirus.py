@@ -47,12 +47,12 @@ def hash_a_file_md5(path):
     return hasher.hexdigest()
 
 
-def create_an_index(path):
+def create_a_list_of_files(path):
     index = []
     path = Path(path)
     for item_path in path.iterdir():
         if item_path.is_dir():
-            for file in create_an_index(item_path):
+            for file in create_a_list_of_files(item_path):
                 index.append(file)
         elif item_path.is_file():
             index.append(File(item_path))
@@ -60,17 +60,16 @@ def create_an_index(path):
 
 
 def save_index_to_json(path):
-    index = create_an_index(path)
+    index = create_a_list_of_files(path)
     with open("/home/zgodek/pipr/antivirus/index.json", 'w') as file_handle:
-        data = []
+        data = {}
         for file in index:
             file_data = {
-                "path": str(file.path()),
                 "status": str(file.status()),
                 "hash_md5": str(file.hash_md5()),
                 "hash_sh1": str(file.hash_sh1())
             }
-            data.append(file_data)
+            data[str(file.path())] = file_data
         json.dump(data, file_handle)
 
 
@@ -86,8 +85,9 @@ def check_file(path):
     path_database = Path(path_database)
     for item_path in path_database.iterdir():
         with open(item_path, 'r') as file_handle:
-            if file.hash_md5() in file_handle:
-                infected = True
+            for line in file_handle:
+                if line == file.hash_md5():
+                    infected = True
     with open(path, 'rb') as file_handle:
         pass
     return infected
@@ -108,25 +108,25 @@ def full_scan(path):
     return files_with_viruses
 
 
-def quick_scan(path):
+def quick_scan(path, index={}):
+    if index == {}:
+        with open("/home/zgodek/pipr/antivirus/index.json", 'r') as file_handle:
+            data = json.load(file_handle)
+            for item in data:
+                index[item] = data[item]["hash_sh1"]
+                print(index[item])
     path = Path(path)
     files_with_viruses = []
     for item_path in path.iterdir():
         if item_path.is_dir():
-            files_with_viruses.append(quick_scan(item_path))
+            viruses_in_folder = quick_scan(item_path, index)
+            if viruses_in_folder != []:
+                files_with_viruses.append(viruses_in_folder)
         else:
             file = File(item_path)
-            with open("/home/zgodek/pipr/antivirus/index.json", 'r') as file_handle:
-                data = json.load(file_handle)
-                is_in_index = False
-                for item in data:
-                    if item["hash_sh1"] == file.hash_sh1():
-                        is_in_index = True
-                        break
-                if is_in_index == False:
-                    if check_file(item_path) == True:
-                        remove_viruses(item_path, check_file(item_path))
-                        files_with_viruses.append(item_path)
+            if file.hash_md5() not in index:
+                if check_file(item_path) == True:
+                    files_with_viruses.append(item_path)
     return files_with_viruses
 
 
