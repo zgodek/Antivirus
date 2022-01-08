@@ -21,9 +21,22 @@ def save_index_to_json(path):
         data = {}
         for file in list_of_files:
             file_data = {
-                "status": str(file.status()),
+                # "status": str(file.status()),
                 "hash_md5": str(file.hash_md5()),
                 "hash_sh1": str(file.hash_sh1())
             }
             data[str(file.path())] = file_data
+        json.dump(data, file_handle)
+
+
+def update_index_in_json(path, filepath):
+    with open(path, 'r') as file_handle:
+        data = json.load(file_handle)
+    file = File(filepath)
+    with open(path, 'w') as file_handle:
+        data[filepath] = {
+            # "status": str(file.status()),
+            "hash_md5": str(file.hash_md5()),
+            "hash_sh1": str(file.hash_sh1())
+        }
         json.dump(data, file_handle)
