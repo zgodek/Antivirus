@@ -23,7 +23,7 @@ def quick_scan(path, list_of_hashes={}):
         with open("/home/zgodek/pipr/antivirus/index.json", 'r') as file_handle:
             data = json.load(file_handle)
             for item in data:
-                list_of_hashes[item] = data[item]["hash_sh1"]
+                list_of_hashes[item] = data[item]["hash_sh1"].rstrip()
     path = Path(path)
     files_with_viruses = []
     for item_path in path.iterdir():
@@ -33,7 +33,7 @@ def quick_scan(path, list_of_hashes={}):
                 files_with_viruses.extend(viruses_in_folder)
         else:
             file = File(item_path)
-            if file.hash_md5() not in list_of_hashes:
+            if file.hash_sh1() not in list_of_hashes.values():
                 if check_file(item_path):
                     files_with_viruses.append(item_path)
     return files_with_viruses
