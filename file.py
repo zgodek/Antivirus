@@ -1,5 +1,4 @@
 import hashlib
-from pathlib import Path
 
 
 class File:
@@ -11,8 +10,8 @@ class File:
     def path(self):
         return self._path
 
-    def status(self):
-        return check_file(self.path())
+    # def status(self):
+    #     return check_file(self.path())
 
     def hash_md5(self):
         return self._hash_md5
@@ -41,18 +40,3 @@ def hash_a_file_md5(path):
             hasher.update(buf)
             buf = file_handle.read(BLOCKSIZE)
     return hasher.hexdigest()
-
-
-def check_file(path):
-    infected = False
-    file = File(path)
-    path_database = '/home/zgodek/pipr/antivirus/database_md5'
-    path_database = Path(path_database)
-    for item_path in path_database.iterdir():
-        with open(item_path, 'r') as file_handle:
-            for line in file_handle:
-                if str(line).rstrip() == str(file.hash_md5()):
-                    infected = True
-    with open(path, 'rb') as file_handle:
-        pass
-    return infected
