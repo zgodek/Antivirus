@@ -1,9 +1,9 @@
 from pathlib import Path
 from file import File
-from database import read_index_database, read_virus_database
+from database import read_index_database, read_virus_database_md5, read_virus_database_sequences
 
-virus_hashes_md5 = read_virus_database("/home/zgodek/pipr/antivirus/database_md5")
-virus_sequences = read_virus_database("/home/zgodek/pipr/antivirus/database_sequences")
+virus_hashes_md5 = read_virus_database_md5("/home/zgodek/pipr/antivirus/database_md5")
+virus_sequences = read_virus_database_sequences("/home/zgodek/pipr/antivirus/database_sequences")
 
 
 def full_scan(path):
@@ -48,12 +48,12 @@ def check_file(path):
     with open(file.path(), 'rb') as file_handle:
         byte_sequence = file_handle.read()
         for virus_sequence in virus_sequences:
-            if byte_sequence.find(virus_sequence):
+            if byte_sequence.find(virus_sequence) >= 0:
                 infected = True
     return infected
 
 
-def remove_viruses(path, location):
+def remove_viruses(path):
     with open(path, 'wb') as file_handle:
         pass
 
