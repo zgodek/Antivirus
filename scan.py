@@ -1,9 +1,10 @@
 from pathlib import Path
 from file import File
-from database import read_index_database, read_virus_database_md5, read_virus_database_sequences
+from database import Database
+import os
 
-virus_hashes_md5 = read_virus_database_md5("/home/zgodek/pipr/antivirus/database_md5")
-virus_sequences = read_virus_database_sequences("/home/zgodek/pipr/antivirus/database_sequences")
+
+database = Database()
 
 
 def full_scan(path):
@@ -14,26 +15,24 @@ def full_scan(path):
             viruses_in_folder = full_scan(item_path)
             files_with_viruses.extend(viruses_in_folder)
         if item_path.is_file():
-            print(item_path)
             if check_file(item_path):
-                remove_viruses(item_path, check_file(item_path))
                 files_with_viruses.append(item_path)
     return files_with_viruses
 
 
-def quick_scan(path, list_of_hashes={}):
-    if list_of_hashes == {}:
-        list_of_hashes = read_index_database("/home/zgodek/pipr/antivirus/index.json")
+def quick_scan(path, dict_of_hashes=None):
+    if dict_of_hashes is None:
+        dict_of_hashes = database.read_index_database()
     path = Path(path)
     files_with_viruses = []
     for item_path in path.iterdir():
         if item_path.is_dir():
-            viruses_in_folder = quick_scan(item_path, list_of_hashes)
+            viruses_in_folder = quick_scan(item_path, dict_of_hashes)
             if viruses_in_folder != []:
                 files_with_viruses.extend(viruses_in_folder)
         else:
             file = File(item_path)
-            if file.hash_sh1() not in list_of_hashes.values():
+            if file.hash_sh1() not in dict_of_hashes.values():
                 if check_file(item_path):
                     files_with_viruses.append(item_path)
     return files_with_viruses
@@ -42,18 +41,27 @@ def quick_scan(path, list_of_hashes={}):
 def check_file(path):
     infected = False
     file = File(path)
+    virus_hashes_md5 = database.read_virus_database_md5()
+    virus_sequences = database.virus_sequences_databse()
     for virus_hash_md5 in virus_hashes_md5:
         if virus_hash_md5 == file.hash_md5():
+            remove_file(path)
             infected = True
     with open(file.path(), 'rb') as file_handle:
         byte_sequence = file_handle.read()
         for virus_sequence in virus_sequences:
-            if byte_sequence.find(virus_sequence) >= 0:
+            position = byte_sequence.find(virus_sequence)
+            if position >= 0:
+                fix_file(path, position)
                 infected = True
     return infected
 
 
-def remove_viruses(path):
+def remove_file(path):
+    os.remove(path)
+
+
+def fix_file(path, position):
     with open(path, 'wb') as file_handle:
         pass
 
