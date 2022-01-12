@@ -11,7 +11,7 @@ def full_scan(path):
     path = Path(path)
     files_with_viruses = []
     for item_path in path.iterdir():
-        if item_path == Path(database.get_path("virus_sequences_path")) or item_path == Path(database.get_path("/home/zgodek/pipr/antivirus/database_md5")):
+        if item_path == Path(database.get_path("virus_sequences_path")) or item_path == Path(database.get_path("virus_hashes_path")):
             continue
         if item_path.is_dir():
             viruses_in_folder = full_scan(item_path)
@@ -28,7 +28,7 @@ def quick_scan(path, dict_of_hashes=None):
     path = Path(path)
     files_with_viruses = []
     for item_path in path.iterdir():
-        if item_path == Path(database.get_path("virus_sequences_path")) or item_path == Path(database.get_path("/home/zgodek/pipr/antivirus/database_md5")):
+        if item_path == Path(database.get_path("virus_sequences_path")) or item_path == Path(database.get_path("virus_hashes_path")):
             continue
         if item_path.is_dir():
             viruses_in_folder = quick_scan(item_path, dict_of_hashes)
