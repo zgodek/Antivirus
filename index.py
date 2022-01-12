@@ -1,6 +1,10 @@
 from pathlib import Path
 import json
 from file import File
+from database import Database
+
+
+database = Database()
 
 
 def create_a_list_of_files(path):
@@ -17,11 +21,11 @@ def create_a_list_of_files(path):
 
 def save_index_to_json(path):
     list_of_files = create_a_list_of_files(path)
-    with open("/home/zgodek/pipr/antivirus/index.json", 'w') as file_handle:
+    with open(database.get_path("index_path"), 'w') as file_handle:
         data = {}
         for file in list_of_files:
             file_data = {
-                # "status": str(file.status()),
+                "status": str(file.status()),
                 "hash_md5": str(file.hash_md5()),
                 "hash_sh1": str(file.hash_sh1())
             }
@@ -35,7 +39,7 @@ def update_index_in_json(path, filepath):
     file = File(filepath)
     with open(path, 'w') as file_handle:
         data[filepath] = {
-            # "status": str(file.status()),
+            "status": str(file.status()),
             "hash_md5": str(file.hash_md5()),
             "hash_sh1": str(file.hash_sh1())
         }
