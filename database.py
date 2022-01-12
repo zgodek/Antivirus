@@ -37,9 +37,9 @@ class Database:
 
     def read_index_database(self):
         path = self.get_path("index_path")
-        list_of_hashes = []
+        dict_of_hashes = {}
         with open(path, 'r') as file_handle:
             data = json.load(file_handle)
             for item in data:
-                list_of_hashes[item] = data[item]["hash_sh1"].rstrip()
-        return list_of_hashes
+                dict_of_hashes[str(item)] = data[str(item)]["hash_sh1"]
+        return dict_of_hashes
