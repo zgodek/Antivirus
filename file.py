@@ -21,9 +21,9 @@ class File:
         hasher = hashlib.sha1()
         with open(path, 'rb') as file_handle:
             buf = file_handle.read(BLOCKSIZE)
-        while len(buf) > 0:
-            hasher.update(buf)
-            buf = file_handle.read(BLOCKSIZE)
+            while len(buf) > 0:
+                hasher.update(buf)
+                buf = file_handle.read(BLOCKSIZE)
         return hasher.hexdigest()
 
     def hash_sh1(self):
