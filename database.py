@@ -3,10 +3,19 @@ import json
 import os
 
 
+class PathError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class Database:
     def __init__(self):
         self._dict_of_paths = {}
-        self._config_database_path = str(os.path.realpath(__file__)) + "/config_database.json"
+        self._config_database_path = str(os.path.realpath(__file__)).replace("database.py", "") + "config_database.json"
+        with open(self._config_database_path, 'r') as file_handle:
+            data = json.load(file_handle)
+            for item in data:
+                self._dict_of_paths[item] = data[item]
 
     def change_path(self, which_path, new_path):
         self._dict_of_paths[which_path] = new_path
@@ -38,13 +47,13 @@ class Database:
                 list_of_sequences.append(file_handle.read())
         return list_of_sequences
 
-    def read_index_database(self):
-        path = self.get_path("index_path")
+    def read_index_database(self, path):
+        path = self.get_path("index_path")+f'/{os.path.split(path)[1]}_index'
         if not os.path.isfile(path):
-            return -1
-        dict_of_hashes = {}
+            raise PathError("Index for this folder does not exist")
+        dict_of_files = {}
         with open(path, 'r') as file_handle:
             data = json.load(file_handle)
             for item in data:
-                dict_of_hashes[str(item)] = data[str(item)]["hash_sh1"]
-        return dict_of_hashes
+                dict_of_files[str(item)] = data[str(item)]
+        return dict_of_files
