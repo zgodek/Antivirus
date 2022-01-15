@@ -18,7 +18,7 @@ class File:
     def hash_md5(self):
         path = self._path
         BLOCKSIZE = 65536
-        hasher = hashlib.sha1()
+        hasher = hashlib.md5()
         with open(path, 'rb') as file_handle:
             buf = file_handle.read(BLOCKSIZE)
             while len(buf) > 0:
@@ -29,7 +29,7 @@ class File:
     def hash_sh1(self):
         path = self._path
         BLOCKSIZE = 65536
-        hasher = hashlib.md5()
+        hasher = hashlib.sha1()
         with open(path, 'rb') as file_handle:
             buf = file_handle.read(BLOCKSIZE)
             while len(buf) > 0:
