@@ -1,4 +1,3 @@
-#!/usr/bin/python
 from database import Database
 from scan import full_scan, quick_scan
 from index import create_index, update_index
