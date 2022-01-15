@@ -1,15 +1,12 @@
 from pathlib import Path
 import json
+import os
 
 
 class Database:
     def __init__(self):
-        self._dict_of_paths = {
-            "virus_hashes_path": "/home/zgodek/pipr/antivirus/database_md5",
-            "virus_sequences_path": "/home/zgodek/pipr/antivirus/database_sequences",
-            "index_path": "/home/zgodek/pipr/antivirus/index.json",
-            "test_directory": "/home/zgodek/pipr/antivirus/test_dir"
-        }
+        self._dict_of_paths = {}
+        self._config_database_path = str(os.path.realpath(__file__)) + "/config_database.json"
 
     def change_path(self, which_path, new_path):
         self._dict_of_paths[which_path] = new_path
@@ -21,13 +18,18 @@ class Database:
         path = self.get_path("virus_hashes_path")
         path_database = Path(path)
         list_of_hashes = []
-        for item_path in path_database.iterdir():
-            with open(item_path, 'r') as file_handle:
+        if path_database.is_dir():
+            for item_path in path_database.iterdir():
+                with open(item_path, 'r') as file_handle:
+                    for line in file_handle:
+                        list_of_hashes.append(str(line).rstrip())
+        else:
+            with open(path, 'r') as file_handle:
                 for line in file_handle:
                     list_of_hashes.append(str(line).rstrip())
         return list_of_hashes
 
-    def virus_sequences_databse(self):
+    def virus_sequences_database(self):
         path = self.get_path("virus_sequences_path")
         path_database = Path(path)
         list_of_sequences = []
@@ -38,6 +40,8 @@ class Database:
 
     def read_index_database(self):
         path = self.get_path("index_path")
+        if not os.path.isfile(path):
+            return -1
         dict_of_hashes = {}
         with open(path, 'r') as file_handle:
             data = json.load(file_handle)
