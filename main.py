@@ -1,23 +1,32 @@
-from scan import full_scan, quick_scan, when_to_scan
+#!/usr/bin/python
+from database import Database
+from scan import full_scan, quick_scan
+from index import save_index_to_json, update_index_in_json
+import sys
+import argparse
 
 
-def main():
-    anwser = ""
-    while anwser != "4":
-        anwser = input("Type:\n1 for full scan\n2 for quick scan\n3 to set the time when to perform a quick scan\n4 to shut down the program\n")
-        if anwser == "1":
-            path = input("Enter the path:\n")
-            print(full_scan(path))
-        elif anwser == "2":
-            path = input("Enter the path:\n")
-            print(quick_scan(path))
-        elif anwser == "3":
-            time = input("Enter the time in this format: hour:min:sec\n")
-            when_to_scan(time)
-        else:
-            continue
+database = Database()
+
+parser = argparse.ArgumentParser(description='Perform a full scan, a quick scan, create an index of a folder or update an index')
+parser.add_argument('action', type=str, help='What type of action do you want to perform')
+parser.add_argument('path', type=str, help='Where do you want to perform chosen action')
+parser.add_argument('create index', type=str, help='Of which folder do you want to create an index')
+parser.add_argument('update index', type=str, help='Which folders index do you want to update')
+args = parser.parse_args()
+
+
+def main(action, path):
+    if action == 'full scan':
+        full_scan(path, database)
+    if action == 'quick scan':
+        quick_scan(path, database)
+    if action == 'create index':
+        save_index_to_json(path, database)
+    if action == 'update index':
+        update_index_in_json(path, database)
     return
 
 
 if __name__ == "__main__":
-    main()
+    main(args.action, args.path)
