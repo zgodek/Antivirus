@@ -72,19 +72,18 @@ def quick_scan(path, database_qs, dict_of_files=None):
             file = File(item_path)
             item_path = item_path.as_posix()
             try:
-                if file.hash_sh1() != dict_of_files[item_path]["hash_sh1"]:
+                if file.hash_sh1() != dict_of_files[item_path]["hash_sh1"] or dict_of_files["status"] == file.status():
                     check_file_results = check_file(item_path, database_qs)
-                    if check_file_results[0] == True and check_file_results[1] == "N":
+                    if check_file_results[0] is True and check_file_results[1] == "N":
                         files_with_viruses.append(item_path)
                         dict_of_files[item_path]["status"] = "Infected"
                     elif check_file_results[0]:
                         files_with_viruses.append(item_path)
-                        dict_of_files[item_path]["status"] = "Clean"
+                        dict_of_files[item_path]["status"] = status
                     dict_of_files[item_path]["last_scanned"] = time.time()
             except (TypeError, KeyError) as e:
                 check_file_results = check_file(item_path, database_qs)
-                status = "Clean"
-                if check_file_results[0] == True and check_file_results[1] == "N":
+                if check_file_results[0] is True and check_file_results[1] == "N":
                         files_with_viruses.append(item_path)
                         status = "Infected"
                 dict_of_files[item_path] = {
