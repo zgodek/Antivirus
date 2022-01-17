@@ -17,10 +17,10 @@ def create_dict_of_files(path, dict_of_files=None):
             item_path = item_path.as_posix()
             file = File(item_path)
             dict_of_files[item_path] = {
-                "status": "Unknown",
+                "status": file.status(),
                 "hash_md5": str(file.hash_md5()),
                 "hash_sh1": str(file.hash_sh1()),
-                "last_scanned": "Unknown"
+                "last_scanned": None
             }
     return dict_of_files
 
@@ -46,20 +46,20 @@ def when_files_were_last_updated(path, database, dict_of_old_files=None):
             file = File(item_path)
             if item_path in dict_of_old_files.keys():
                 last_time_scanned = dict_of_old_files[item_path]["last_scanned"]
-                if last_time_scanned == "Unknown" or (os.path.getmtime(item_path)
+                if last_time_scanned == None or (os.path.getmtime(item_path)
                                                       > last_time_scanned):
                     dict_of_old_files[item_path] = {
-                        "status": "Unknown",
+                        "status": file.status(),
                         "hash_md5": str(file.hash_md5()),
                         "hash_sh1": str(file.hash_sh1()),
                         "last_scanned": last_time_scanned
                     }
             else:
                 dict_of_old_files[item_path] = {
-                    "status": "Unknown",
+                    "status": file.status(),
                     "hash_md5": str(file.hash_md5()),
                     "hash_sh1": str(file.hash_sh1()),
-                    "last_scanned": "Unknown"
+                    "last_scanned": None
                 }
         else:
             dict_of_old_files = when_files_were_last_updated(item_path, database, dict_of_old_files)
