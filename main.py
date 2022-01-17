@@ -1,6 +1,6 @@
 from database import Database
 from scan import full_scan, quick_scan
-from index import create_index, update_index
+from index import create_index, update_index, write_dict_to_index
 import argparse
 
 
@@ -14,9 +14,13 @@ args = parser.parse_args()
 
 def main(action, path):
     if action == 'full scan':
-        print(full_scan(path, database))
+        full_scan_result = full_scan(path, database)
+        print(full_scan_result[0])
+        write_dict_to_index(path, database, full_scan_result[1])
     if action == 'quick scan':
-        print(quick_scan(path, database))
+        quick_scan_result = quick_scan(path, database)
+        print(quick_scan_result[0])
+        write_dict_to_index(path, database, quick_scan_result[1])
     if action == 'create index':
         create_index(path, database)
     if action == 'update index':
