@@ -3,7 +3,6 @@ from pathlib import Path
 import json
 from file import File
 import os
-from database import Database
 
 
 def create_dict_of_files(path, dict_of_files=None):
