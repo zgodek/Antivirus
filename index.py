@@ -45,8 +45,8 @@ def when_files_were_last_updated(path, database, dict_of_old_files=None):
             file = File(item_path)
             if item_path in dict_of_old_files.keys():
                 last_time_scanned = dict_of_old_files[item_path]["last_scanned"]
-                if last_time_scanned == None or (os.path.getmtime(item_path)
-                                                      > last_time_scanned):
+                if last_time_scanned is None or (os.path.getmtime(item_path)
+                                                      > float(last_time_scanned)):
                     dict_of_old_files[item_path] = {
                         "status": file.status(),
                         "hash_md5": str(file.hash_md5()),
@@ -67,7 +67,8 @@ def when_files_were_last_updated(path, database, dict_of_old_files=None):
 
 def update_index(path, database):
     dict_of_updated_files = when_files_were_last_updated(path, database)
+    dict_of_not_erased_files = {}
     for item in dict_of_updated_files:
-        if not os.path.isfile(Path(item)):
-            dict_of_updated_files.pop(item)
-    write_dict_to_index(path, database, dict_of_updated_files)
+        if os.path.isfile(Path(item)):
+            dict_of_not_erased_files[item] = dict_of_updated_files[item]
+    write_dict_to_index(path, database, dict_of_not_erased_files)
