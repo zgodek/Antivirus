@@ -4,7 +4,7 @@ import hashlib
 class File:
     def __init__(self, path):
         self._path = path
-        self._status = False
+        self._status = "Unknown"
 
     def path(self):
         return self._path
