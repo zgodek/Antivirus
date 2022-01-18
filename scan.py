@@ -23,7 +23,8 @@ def full_scan(path, database_fs, dict_of_files=None):
     files_with_viruses = []
     for item_path in path.iterdir():
         if item_path == Path(database_fs.get_path("virus_sequences_path")) \
-                        or item_path == Path(database_fs.get_path("virus_hashes_path")):
+                        or item_path == Path(database_fs.get_path("virus_hashes_path")) \
+                        or item_path == Path(database_fs.get_path("test_path")):
             continue
         elif item_path.is_dir():
             results_of_full_scan = full_scan(item_path, database_fs, dict_of_files)
@@ -68,7 +69,8 @@ def quick_scan(path, database_qs, dict_of_files=None):
     for item_path in path.iterdir():
         status = "Clean"
         if item_path == Path(database_qs.get_path("virus_sequences_path")) \
-                        or item_path == Path(database_qs.get_path("virus_hashes_path")):
+                        or item_path == Path(database_qs.get_path("virus_hashes_path")) \
+                        or item_path == Path(database_qs.get_path("test_path")):
             continue
         elif item_path.is_dir():
             results_of_quick_scan = quick_scan(item_path, database_qs, dict_of_files)
