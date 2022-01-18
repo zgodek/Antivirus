@@ -17,7 +17,8 @@ def full_scan(path, database_fs, dict_of_files=None):
         try:
             dict_of_files = database_fs.read_index_database(path)
         except PathError:
-            dict_of_files = create_index(path, database_fs)
+            create_index(path, database_fs)
+            dict_of_files = database_fs.read_index_database(path)
     path = Path(path)
     files_with_viruses = []
     for item_path in path.iterdir():
@@ -30,7 +31,7 @@ def full_scan(path, database_fs, dict_of_files=None):
             viruses_in_folder = results_of_full_scan[0]
             if viruses_in_folder != []:
                 files_with_viruses.extend(viruses_in_folder)
-        elif item_path.is_file():
+        else:
             status = "Clean"
             file = File(item_path)
             item_path = item_path.as_posix()
@@ -41,8 +42,9 @@ def full_scan(path, database_fs, dict_of_files=None):
             elif check_file_results[0]:
                 files_with_viruses.append(item_path)
             try:
-                dict_of_files[item_path]["last_scanned"] = time.time()
-                dict_of_files[item_path]["status"] = status
+                item_in_dict = dict_of_files[item_path]
+                item_in_dict["last_scanned"] = time.time()
+                item_in_dict["status"] = status
             except (TypeError, KeyError) as e:
                 dict_of_files[item_path] = {
                     "status": status,
@@ -59,15 +61,16 @@ def quick_scan(path, database_qs, dict_of_files=None):
             dict_of_files = database_qs.read_index_database(path)
         except PathError:
             error_msg = "A quick scan cannot be performed without" \
-                        + "an existing index for this path, please create an index first"
+                        + " an existing index for this path, please create an index first"
             raise IndexDoesntExistError(error_msg)
     path = Path(path)
     files_with_viruses = []
     for item_path in path.iterdir():
         status = "Clean"
-        if item_path == Path(database_qs.get_path("virus_sequences_path")) or item_path == Path(database_qs.get_path("virus_hashes_path")):
+        if item_path == Path(database_qs.get_path("virus_sequences_path")) \
+                        or item_path == Path(database_qs.get_path("virus_hashes_path")):
             continue
-        if item_path.is_dir():
+        elif item_path.is_dir():
             results_of_quick_scan = quick_scan(item_path, database_qs, dict_of_files)
             viruses_in_folder = results_of_quick_scan[0]
             dict_of_files = results_of_quick_scan[1]
@@ -77,21 +80,22 @@ def quick_scan(path, database_qs, dict_of_files=None):
             item_path = item_path.as_posix()
             file = File(item_path)
             try:
-                if file.hash_sh1() != dict_of_files[item_path]["hash_sh1"] or dict_of_files[item_path]["status"] == file.status():
+                item_in_dict = dict_of_files[item_path]
+                if file.hash_sh1() != item_in_dict["hash_sh1"] or item_in_dict["status"] == file.status():
                     check_file_results = check_file(item_path, database_qs)
                     if check_file_results[0] is True and check_file_results[1] == "N":
                         files_with_viruses.append(item_path)
-                        dict_of_files[item_path]["status"] = "Infected"
+                        item_in_dict["status"] = "Infected"
                     elif check_file_results[0]:
                         files_with_viruses.append(item_path)
-                        dict_of_files[item_path]["status"] = status
-                    dict_of_files[item_path]["status"] = status
-                    dict_of_files[item_path]["last_scanned"] = time.time()
+                        item_in_dict["status"] = status
+                    item_in_dict["status"] = status
+                    item_in_dict["last_scanned"] = time.time()
             except (TypeError, KeyError) as e:
                 check_file_results = check_file(item_path, database_qs)
                 if check_file_results[0] is True and check_file_results[1] == "N":
-                        files_with_viruses.append(item_path)
-                        status = "Infected"
+                    files_with_viruses.append(item_path)
+                    status = "Infected"
                 dict_of_files[item_path] = {
                     "status": status,
                     "hash_md5": str(file.hash_md5()),
