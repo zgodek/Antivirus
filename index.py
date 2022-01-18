@@ -43,7 +43,7 @@ def when_files_were_last_updated(path, database, dict_of_old_files=None):
         if item_path.is_file():
             item_path = item_path.as_posix()
             file = File(item_path)
-            if item_path in dict_of_old_files.keys():
+            if item_path not in dict_of_old_files.keys():
                 last_time_scanned = dict_of_old_files[item_path]["last_scanned"]
                 if last_time_scanned is None or (os.path.getmtime(item_path)
                                                       > float(last_time_scanned)):
