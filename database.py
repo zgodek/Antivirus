@@ -11,7 +11,7 @@ class PathError(Exception):
 class Database:
     def __init__(self):
         self._dict_of_paths = {}
-        self._config_database_path = str(os.path.realpath(__file__)).replace("database.py", "") + "config_database.json"
+        self._config_database_path = str(os.path.dirname(__file__)) + "/config_database.json"
         with open(self._config_database_path, 'r') as file_handle:
             data = json.load(file_handle)
             for item in data:
@@ -22,6 +22,12 @@ class Database:
 
     def get_path(self, which_path):
         return self._dict_of_paths[which_path]
+
+    def get_paths(self):
+        list_of_paths = []
+        for path in self._dict_of_paths:
+            list_of_paths.append(Path(self._dict_of_paths[path]))
+        return list_of_paths
 
     def read_virus_database_md5(self):
         path = self.get_path("virus_hashes_path")
