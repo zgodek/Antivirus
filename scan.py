@@ -4,6 +4,11 @@ from file import File
 from database import PathError
 import time
 import os
+import collections
+
+
+Anwser = collections.namedtuple("Anwser", ['no_virus', 'virus'])
+anwsers = Anwser("Clean", "Infected")
 
 
 class IndexDoesntExistError(Exception):
@@ -30,13 +35,13 @@ def full_scan(path, database_fs, dict_of_files=None):
             if viruses_in_folder != []:
                 files_with_viruses.extend(viruses_in_folder)
         else:
-            status = "Clean"
+            status = anwsers.no_virus
             file = File(item_path)
             item_path = item_path.as_posix()
             check_file_results = check_file(item_path, database_fs)
             if check_file_results[0] is True and check_file_results[1] == "N":
                 files_with_viruses.append(item_path)
-                status = "Infected"
+                status = anwsers.virus
             elif check_file_results[0]:
                 files_with_viruses.append(item_path)
             try:
@@ -73,7 +78,7 @@ def quick_scan(path, database_qs, dict_of_files=None):
             if viruses_in_folder != []:
                 files_with_viruses.extend(viruses_in_folder)
         else:
-            status = "Clean"
+            status = anwsers.no_virus
             item_path = item_path.as_posix()
             file = File(item_path)
             try:
@@ -82,7 +87,7 @@ def quick_scan(path, database_qs, dict_of_files=None):
                     check_file_results = check_file(item_path, database_qs)
                     if check_file_results[0] is True and check_file_results[1] == "N":
                         files_with_viruses.append(item_path)
-                        status = "Infected"
+                        status = anwsers.virus
                     elif check_file_results[0]:
                         files_with_viruses.append(item_path)
                     item_in_dict["status"] = status
@@ -91,7 +96,7 @@ def quick_scan(path, database_qs, dict_of_files=None):
                 check_file_results = check_file(item_path, database_qs)
                 if check_file_results[0] is True and check_file_results[1] == "N":
                     files_with_viruses.append(item_path)
-                    status = "Infected"
+                    status = anwsers.virus
                 elif check_file_results[0]:
                     files_with_viruses.append(item_path)
                 dict_of_files[item_path] = {
@@ -108,7 +113,7 @@ def check_file(path, database_chf):
     infected = False
     file = File(path)
     virus_hashes_md5 = database_chf.read_virus_database_md5()
-    virus_sequences = database_chf.virus_sequences_database()
+    virus_sequences = database_chf.read_virus_sequences_database()
     for virus_hash_md5 in virus_hashes_md5:
         if virus_hash_md5 == file.hash_md5():
             infected = True
