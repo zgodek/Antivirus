@@ -7,89 +7,101 @@ from io import StringIO
 import json
 
 
-def test_create_database():
+def test_database_get_path():
     dict_of_paths = {
-        "path1": "/dict/path1",
-        "path2": "/dict/path2"
+        "path1": "/dir/path1",
+        "path2": "/dir/path2"
     }
     database = Database(dict_of_paths)
-    assert database.get_path("path1") == "/dict/path1"
-    assert database.get_path("path2") == "/dict/path2"
-    database.change_path("path1", "/dict/path3")
-    assert database.get_path("path1") == "/dict/path3"
+    assert database.get_path("path1") == "/dir/path1"
+    assert database.get_path("path2") == "/dir/path2"
 
 
-def test_database_read_list_of_virus_hashes():
+def test_database_get_paths():
+    dict_of_paths = {
+        "path1": "/dir/path1",
+        "path2": "/dir/path2"
+    }
+    database = Database(dict_of_paths)
+    assert database.get_paths() == [Path("/dir/path1"), Path("/dir/path2")]
+
+
+def test_database_read_virus_hashes():
     with tempfile.TemporaryDirectory() as tmpdirname_hashes:
-        with tempfile.TemporaryDirectory() as tmpdirname_sequences:
-            with tempfile.NamedTemporaryFile(suffix=".txt", prefix="list_of_viruses", mode="w", dir=tmpdirname_hashes) as file_handle:
-                dict_of_paths = {
-                    "virus_hashes_path": tmpdirname_hashes,
-                    "virus_sequences_path": tmpdirname_sequences
-                }
-                file_handle.write("781770fda3bd3236d0ab8274577bbbbe\n247438632580f9c018c4d8f8d9c6c408")
-                file_handle.seek(0)
-                database = Database(dict_of_paths)
-                assert database.read_virus_database_md5() == ["781770fda3bd3236d0ab8274577bbbbe", "247438632580f9c018c4d8f8d9c6c408"]
-
-
-def test_database_read_list_of_virus_sequences():
-    with tempfile.TemporaryDirectory() as tmpdir_hashes:
-        with tempfile.TemporaryDirectory() as tmpdir_sequences:
+        with tempfile.NamedTemporaryFile(suffix=".txt", prefix="list_of_viruses", mode="w", dir=tmpdirname_hashes) as file_handle:
             dict_of_paths = {
-                "virus_hashes_path": tmpdir_hashes,
-                "virus_sequences_path": tmpdir_sequences
+                "virus_hashes_path": tmpdirname_hashes,
             }
-            with tempfile.NamedTemporaryFile(suffix=".txt", prefix="seq1", dir=tmpdir_sequences) as file_handle1:
-                with tempfile.NamedTemporaryFile(suffix=".txt", prefix="seq2", dir=tmpdir_sequences) as file_handle2:
-                    file_handle1.write(b"12345")
-                    file_handle1.seek(0)
-                    file_handle2.write(b"$#@#@#")
-                    file_handle2.seek(0)
-                    database = Database(dict_of_paths)
-                    assert b"12345" and b"$#@#@#" in database.read_virus_sequences_database()
-
-
-def test_check_file_clean():
-    with tempfile.TemporaryDirectory() as tmpdir_hashes:
-        with tempfile.TemporaryDirectory() as tmpdir_sequences:
-            dict_of_paths = {
-                "virus_hashes_path": tmpdir_hashes,
-                "virus_sequences_path": tmpdir_sequences
-            }
+            file_handle.write("781770fda3bd3236d0ab8274577bbbbe\n247438632580f9c018c4d8f8d9c6c408")
+            file_handle.seek(0)
             database = Database(dict_of_paths)
-            with tempfile.NamedTemporaryFile(suffix=".txt", prefix="seq", dir=tmpdir_sequences) as file_handle0:
-                file_handle0.write(b"123455")
-                file_handle0.seek(0)
-                with tempfile.NamedTemporaryFile(suffix=".txt", prefix="seq", mode="w", dir=tmpdir_hashes) as file_handle1:
-                    file_handle1.write("00f538c3d410832e241486df061a57ee")
-                    file_handle1.seek(0)
-                    with tempfile.NamedTemporaryFile(suffix=".txt", prefix="cleantempfile") as file_handle1:
-                        file_handle1.write(b"This is a clean test tempfile.")
-                        file_handle1.seek(0)
-                        check_file_results = check_file(file_handle1.name, database)
-                        assert check_file_results[0] is False
-                        assert check_file_results[1] is None
+            assert database.read_virus_database_md5() == ["781770fda3bd3236d0ab8274577bbbbe", "247438632580f9c018c4d8f8d9c6c408"]
 
 
-def test_check_file_infected_seq(monkeypatch):
-    with tempfile.TemporaryDirectory() as tmpdirdatabase:
+def test_database_read_virus_sequences():
+    with tempfile.TemporaryDirectory() as tmpdir_sequences:
         dict_of_paths = {
-            "virus_hashes_path": tmpdirdatabase,
-            "virus_sequences_path": tmpdirdatabase
+            "virus_sequences_path": tmpdir_sequences
         }
         database = Database(dict_of_paths)
-        with tempfile.NamedTemporaryFile(suffix=".txt", prefix="inftempfile") as file_handle1:
-            with tempfile.NamedTemporaryFile(suffix=".txt", prefix="sequence", dir = tmpdirdatabase) as file_handle2:
-
-                file_handle2.write(b"123456")
-                file_handle2.seek(0)
-                monkeypatch.setattr('sys.stdin', StringIO('N'))
-                file_handle1.write(b"sdlkadjsalkdjwow123456aaaslkdjkjaldkjsj")
+        with tempfile.NamedTemporaryFile(suffix=".txt", prefix="seq1", dir=tmpdir_sequences) as file_handle1:
+            with tempfile.NamedTemporaryFile(suffix=".txt", prefix="seq2", dir=tmpdir_sequences) as file_handle2:
+                file_handle1.write(b"12345")
                 file_handle1.seek(0)
-                check_file_results = check_file(file_handle1.name, database)
-                assert check_file_results[0] is True
-                assert check_file_results[1] == "N"
+                file_handle2.write(b"$#@#@#")
+                file_handle2.seek(0)
+                assert b"12345" and b"$#@#@#" in database.read_virus_sequences_database()
+
+
+def test_read_index_database(monkeypatch):
+    monkeypatch.setattr()
+    with tempfile.TemporaryDirectory() as tmpdir_index:
+        dict_of_paths = {
+            "index_path": tmpdir_index
+        }
+        database = Database(dict_of_paths)
+        with tempfile.NamedTemporaryFile(suffix=".txt", prefix="folder", mode="w", dir=tmpdir_index) as file_handle:
+            print(file_handle.name)
+            file_handle.write("{'path1':{'key1': 'value1', 'key2': 'value2'}, 'path2':{'key3':'value3', 'key4': 'value4'}}")
+            file_handle.seek(0)
+            assert database.read_index_database(file_handle.name) == {'path1':{'key1': 'value1', 'key2': 'value2'}, 'path2':{'key3': 'value3', 'key4': 'value4'}}
+
+
+# def test_check_file_clean():
+#     with tempfile.TemporaryDirectory() as tmpdir_hashes:
+#         with tempfile.TemporaryDirectory() as tmpdir_sequences:
+#             dict_of_paths = {
+#                 "virus_hashes_path": tmpdir_hashes,
+#                 "virus_sequences_path": tmpdir_sequences
+#             }
+#             database = Database(dict_of_paths)
+#             with tempfile.NamedTemporaryFile(suffix=".txt", prefix="seq", dir=tmpdir_sequences) as file_handle0:
+#                 file_handle0.write(b"123455")
+#                 file_handle0.seek(0)
+#                 with tempfile.NamedTemporaryFile(suffix=".txt", prefix="hash", mode="w", dir=tmpdir_hashes) as file_handle1:
+#                     file_handle1.write("00f538c3d410832e241486df061a57ee")
+#                     file_handle1.seek(0)
+#                     with tempfile.NamedTemporaryFile(suffix=".txt", prefix="cleantempfile") as file_handle1:
+#                         file_handle1.write(b"This is a clean test tempfile.")
+#                         file_handle1.seek(0)
+#                         check_file_results = check_file(file_handle1.name, database)
+#                         assert check_file_results[0] is False
+#                         assert check_file_results[1] is None
+
+
+# def test_check_file_infected_seq(monkeypatch):
+#     dict_of_paths = {}
+#     database = Database(dict_of_paths)
+#     with tempfile.NamedTemporaryFile(suffix=".txt", prefix="inftempfile") as file_handle1:
+#         with tempfile.NamedTemporaryFile(suffix=".txt", prefix="sequence") as file_handle2:
+#             file_handle2.write(b"123456")
+#             file_handle2.seek(0)
+#             monkeypatch.setattr('sys.stdin', StringIO('N'))
+#             file_handle1.write(b"sdlkadjsalkdjwow123456aaaslkdjkjaldkjsj")
+#             file_handle1.seek(0)
+#             check_file_results = check_file(file_handle1.name, database)
+#             assert check_file_results[0] is True
+#             assert check_file_results[1] == "N"
 
 
 def test_fix_file():
@@ -102,21 +114,17 @@ def test_fix_file():
 
 
 def test_create_dict_of_files():
-    with tempfile.TemporaryDirectory() as tmpdirdatabase:
-        dict_of_paths = {
-            "virus_hashes_path": tmpdirdatabase,
-            "virus_sequences_path": tmpdirdatabase
-        }
-        database = Database(dict_of_paths)
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            with tempfile.NamedTemporaryFile(suffix=".txt", dir=tmpdirname) as file_handle1:
-                file_handle1.write(b"This is a clean test file number 1")
-                file_handle1.seek(0)
-                with tempfile.NamedTemporaryFile(suffix=".txt", dir=tmpdirname) as file_handle2:
-                    file_handle2.write(b"This is a clean test file number 2")
-                    file_handle2.seek(0)
-                    dict_of_tmp_files = create_dict_of_files(tmpdirname, database)
-                    assert file_handle1.name or file_handle2.name in dict_of_tmp_files.keys()
+    dict_of_paths = {}
+    database = Database(dict_of_paths)
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        with tempfile.NamedTemporaryFile(suffix=".txt", dir=tmpdirname) as file_handle1:
+            file_handle1.write(b"This is a clean test file number 1")
+            file_handle1.seek(0)
+            with tempfile.NamedTemporaryFile(suffix=".txt", dir=tmpdirname) as file_handle2:
+                file_handle2.write(b"This is a clean test file number 2")
+                file_handle2.seek(0)
+                dict_of_tmp_files = create_dict_of_files(tmpdirname, database)
+                assert file_handle1.name or file_handle2.name in dict_of_tmp_files.keys()
 
 
 def test_write_dict_to_index():
