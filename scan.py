@@ -5,6 +5,7 @@ from database import PathError
 import time
 import os
 import collections
+import hashlib
 
 
 Anwser = collections.namedtuple("Anwser", ['no_virus', 'virus'])
@@ -129,6 +130,35 @@ def check_file(path, database_chf):
                 anwser = input(f"Do you want to fix this infected file? {file.path()} Y/N\n")
                 if anwser == "Y":
                     fix_file(file.path(), virus_sequence)
+    return (infected, anwser)
+
+
+def check_file_fh(file_handle, database_chf):
+    anwser = None
+    infected = False
+    virus_hashes_md5 = database_chf.read_virus_database_md5()
+    virus_sequences = database_chf.read_virus_sequences_database()
+    BLOCKSIZE = 65536
+    hashed_file = hashlib.md5()
+    buf = file_handle.read(BLOCKSIZE)
+    while len(buf) > 0:
+        hashed_file.update(buf)
+        buf = file_handle.read(BLOCKSIZE)
+    hashed_file = hashed_file.hexdigest()
+    for virus_hash_md5 in virus_hashes_md5:
+        if virus_hash_md5 == hashed_file:
+            infected = True
+            anwser = input(f"Do you want to remove this infected file? {file_handle} Y/N\n")
+            if anwser == "Y":
+                remove_file(path)
+    byte_sequence = file_handle.read()
+    for virus_sequence in virus_sequences:
+        position = byte_sequence.find(virus_sequence)
+        if position >= 0:
+            infected = True
+            anwser = input(f"Do you want to fix this infected file? {file_handle} Y/N\n")
+            if anwser == "Y":
+                fix_file(file_handle, virus_sequence)
     return (infected, anwser)
 
 
