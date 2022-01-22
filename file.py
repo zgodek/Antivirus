@@ -9,9 +9,6 @@ class File:
     def path(self):
         return self._path
 
-    def set_status(self, status):
-        self._status = status
-
     def status(self):
         return self._status
 
