@@ -26,17 +26,6 @@ class File:
                 buf = file_handle.read(BLOCKSIZE)
         return hasher.hexdigest()
 
-    def hash_sh1(self):
-        path = self._path
-        BLOCKSIZE = 65536
-        hasher = hashlib.sha1()
-        with open(path, 'rb') as file_handle:
-            buf = file_handle.read(BLOCKSIZE)
-            while len(buf) > 0:
-                hasher.update(buf)
-                buf = file_handle.read(BLOCKSIZE)
-        return hasher.hexdigest()
-
 
 def hash_md5_bytes(code_bytes: bytes):
     BLOCKSIZE = 65536
