@@ -2,7 +2,6 @@ import tempfile
 from pathlib import Path
 from index import create_index, create_dict_of_files, write_dict_to_index, have_files_changed
 import json
-from database import Database
 
 
 class MockDatabase:
@@ -22,15 +21,15 @@ class MockDatabase:
 
 def test_create_dict_of_files():
     database = MockDatabase()
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        with tempfile.NamedTemporaryFile(suffix=".txt", dir=tmpdirname) as file_handle1:
-            file_handle1.write(b"This is a clean test file number 1")
-            file_handle1.seek(0)
-            with tempfile.NamedTemporaryFile(suffix=".txt", dir=tmpdirname) as file_handle2:
-                file_handle2.write(b"This is a clean test file number 2")
-                file_handle2.seek(0)
-                dict_of_tmp_files = create_dict_of_files(tmpdirname, database)
-                assert file_handle1.name or file_handle2.name in dict_of_tmp_files.keys()
+    with tempfile.TemporaryDirectory() as tmpdirname, \
+            tempfile.NamedTemporaryFile(dir=tmpdirname) as file_handle1, \
+            tempfile.NamedTemporaryFile(dir=tmpdirname) as file_handle2:
+        file_handle1.write(b"This is a clean test file number 1")
+        file_handle1.seek(0)
+        file_handle2.write(b"This is a clean test file number 2")
+        file_handle2.seek(0)
+        dict_of_tmp_files = create_dict_of_files(tmpdirname, database)
+        assert file_handle1.name or file_handle2.name in dict_of_tmp_files.keys()
 
 
 def test_write_dict_to_index():
@@ -52,20 +51,20 @@ def test_write_dict_to_index():
 
 
 def test_create_index():
-    with tempfile.TemporaryDirectory() as tmpdir_index:
+    with tempfile.TemporaryDirectory() as tmpdir_index, \
+            tempfile.TemporaryDirectory() as tmpdir_files, \
+            tempfile.NamedTemporaryFile(dir=tmpdir_files) as file_handle1, \
+            tempfile.NamedTemporaryFile(dir=tmpdir_files) as file_handle2:
         database = MockDatabase(tmpdir_index)
-        with tempfile.TemporaryDirectory() as tmpdir_files:
-            with tempfile.NamedTemporaryFile(suffix=".txt", dir=tmpdir_files) as file_handle1:
-                with tempfile.NamedTemporaryFile(suffix=".txt", dir=tmpdir_files) as file_handle2:
-                    create_index(tmpdir_files, database)
-                    tmpdir_index = Path(tmpdir_index)
-                    for file in tmpdir_index.iterdir():
-                        with open(file.as_posix()) as file_handle_index:
-                            index = json.load(file_handle_index)
-                            list_of_file_paths_in_index = []
-                            for file in index:
-                                list_of_file_paths_in_index.append(file)
-                            assert file_handle1.name and file_handle2.name in list_of_file_paths_in_index
+        create_index(tmpdir_files, database)
+        tmpdir_index = Path(tmpdir_index)
+        for file in tmpdir_index.iterdir():
+            with open(file.as_posix()) as file_handle_index:
+                index = json.load(file_handle_index)
+                list_of_file_paths_in_index = []
+                for file in index:
+                    list_of_file_paths_in_index.append(file)
+                assert file_handle1.name and file_handle2.name in list_of_file_paths_in_index
 
 
 def test_have_files_changed():
