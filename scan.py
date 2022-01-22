@@ -1,11 +1,10 @@
 from pathlib import Path
 from index import create_index
-from file import File
+from file import File, hash_md5_bytes
 from database import PathError
 import time
 import os
 import collections
-import hashlib
 
 
 Anwser = collections.namedtuple("Anwser", ['no_virus', 'virus'])
@@ -17,6 +16,11 @@ class IndexDoesntExistError(Exception):
         super().__init__(message)
 
 
+class PathDoesntExistError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 def full_scan(path, database_fs, dict_of_files=None):
     if dict_of_files is None:
         try:
@@ -24,6 +28,8 @@ def full_scan(path, database_fs, dict_of_files=None):
         except PathError:
             create_index(path, database_fs)
             dict_of_files = database_fs.read_index_database(path)
+    if not os.path.exists(path):
+        raise PathDoesntExistError("This path does not exist.")
     path = Path(path)
     files_with_viruses = []
     for item_path in path.iterdir():
@@ -65,8 +71,10 @@ def quick_scan(path, database_qs, dict_of_files=None):
             dict_of_files = database_qs.read_index_database(path)
         except PathError:
             error_msg = "A quick scan cannot be performed without" \
-                        + " an existing index for this path, please create an index first"
+                        + " an existing index for this path, please create an index first."
             raise IndexDoesntExistError(error_msg)
+    if not os.path.exists(path):
+        raise PathDoesntExistError("This path does not exist.")
     path = Path(path)
     files_with_viruses = []
     for item_path in path.iterdir():
@@ -115,51 +123,34 @@ def check_file(path, database_chf):
     file = File(path)
     virus_hashes_md5 = database_chf.read_virus_database_md5()
     virus_sequences = database_chf.read_virus_sequences_database()
-    for virus_hash_md5 in virus_hashes_md5:
-        if virus_hash_md5 == file.hash_md5():
-            infected = True
+    with open(file.path(), 'rb') as file_handle:
+        (infected, found_virus_seq) = check_file_fh(file_handle, virus_hashes_md5, virus_sequences)
+        if infected is True and found_virus_seq != []:
+            anwser = input(f"Do you want to fix this infected file? {file.path()} Y/N\n")
+            if anwser == "Y":
+                for virus_sequence in found_virus_seq:
+                    fix_file(file.path(), virus_sequence)
+        elif infected is True and found_virus_seq == []:
             anwser = input(f"Do you want to remove this infected file? {file.path()} Y/N\n")
             if anwser == "Y":
-                remove_file(path)
-    with open(file.path(), 'rb') as file_handle:
-        byte_sequence = file_handle.read()
-        for virus_sequence in virus_sequences:
-            position = byte_sequence.find(virus_sequence)
-            if position >= 0:
-                infected = True
-                anwser = input(f"Do you want to fix this infected file? {file.path()} Y/N\n")
-                if anwser == "Y":
-                    fix_file(file.path(), virus_sequence)
+                os.remove(path)
     return (infected, anwser)
 
 
-def check_file_fh(file_handle, database_chf):
-    anwser = None
+def check_file_fh(file_handle, virus_hashes_md5, virus_sequences):
     infected = False
-    virus_hashes_md5 = database_chf.read_virus_database_md5()
-    virus_sequences = database_chf.read_virus_sequences_database()
-    BLOCKSIZE = 65536
-    hashed_file = hashlib.md5()
-    buf = file_handle.read(BLOCKSIZE)
-    while len(buf) > 0:
-        hashed_file.update(buf)
-        buf = file_handle.read(BLOCKSIZE)
-    hashed_file = hashed_file.hexdigest()
+    found_virus_seq = []
+    byte_sequence = file_handle.read()
+    hashed_file = hash_md5_bytes(byte_sequence)
     for virus_hash_md5 in virus_hashes_md5:
         if virus_hash_md5 == hashed_file:
             infected = True
-            anwser = input(f"Do you want to remove this infected file? {file_handle} Y/N\n")
-            if anwser == "Y":
-                remove_file(path)
-    byte_sequence = file_handle.read()
     for virus_sequence in virus_sequences:
         position = byte_sequence.find(virus_sequence)
         if position >= 0:
             infected = True
-            anwser = input(f"Do you want to fix this infected file? {file_handle} Y/N\n")
-            if anwser == "Y":
-                fix_file(file_handle, virus_sequence)
-    return (infected, anwser)
+            found_virus_seq.append(virus_sequence)
+    return (infected, found_virus_seq)
 
 
 def remove_file(path):
