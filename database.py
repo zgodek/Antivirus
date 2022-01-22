@@ -1,15 +1,22 @@
-from pathlib import Path
+from pathlib import Path, PurePath
 import json
 import os
 
 
-class PathError(Exception):
+class DictionaryError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class IndexError(Exception):
     def __init__(self, message):
         super().__init__(message)
 
 
 class Database:
     def __init__(self, dict_of_paths):
+        if type(dict_of_paths) != dict:
+            raise DictionaryError("A dictionary is required to create this database.")
         self._dict_of_paths = dict_of_paths
 
     def get_path(self, which_path):
@@ -46,9 +53,10 @@ class Database:
         return list_of_sequences
 
     def read_index_database(self, path):
-        path = self.get_path("index_path")+f'/{os.path.split(path)[1]}_index'
+        path = PurePath(path)
+        path = self.get_path("index_path")+f'/{path.name}_index'
         if not os.path.isfile(path):
-            raise PathError("Index for this folder does not exist")
+            raise IndexError("Index for this folder does not exist")
         dict_of_files = {}
         with open(path, 'r') as file_handle:
             data = json.load(file_handle)
