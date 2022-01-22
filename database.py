@@ -12,9 +12,6 @@ class Database:
     def __init__(self, dict_of_paths):
         self._dict_of_paths = dict_of_paths
 
-    def change_path(self, which_path, new_path):
-        self._dict_of_paths[which_path] = new_path
-
     def get_path(self, which_path):
         return self._dict_of_paths[which_path]
 
