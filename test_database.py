@@ -1,7 +1,14 @@
 import tempfile
 from pathlib import Path
-from database import Database
-import os
+from database import Database, DictionaryError, IndexError
+import pytest
+import json
+
+
+def test_create_database_not_a_dictionary():
+    dict_of_paths = []
+    with pytest.raises(DictionaryError) as e:
+        database = Database(dict_of_paths)
 
 
 def test_database_get_path():
@@ -56,10 +63,18 @@ def test_database_read_index():
             "index_path": tmpdirindex
         }
         database = Database(dict_of_paths)
-        with tempfile.NamedTemporaryFile(mode="w", dir=tmpdirindex) as file_handle:
-            os.link(file_handle.name, tmpdirindex+"/folderindex_index")
-            test_dict = {'path1': {'key1': 'value1', 'key2': 'value2'}, 'path2': {'key3': 'value3', 'key4': 'value4'}}
-            file_handle.write(f"{test_dict}")
-            file_handle.seek(0)
-            path = file_handle.name.replace("_index", "")
+        with tempfile.NamedTemporaryFile(mode="w+", suffix="folder_index", dir=tmpdirindex) as file_handle:
+            test_dict = {
+                'path1': {
+                    'key1': 'value1',
+                    'key2': 'value2'
+                },
+                'path2': {
+                    'key3': 'value3',
+                    'key4': 'value4'
+                    }
+                }
+            json.dump(test_dict, file_handle)
+            file_handle.flush()
+            path = file_handle.name.replace(("_index"), "")
             assert database.read_index_database(path) == test_dict
