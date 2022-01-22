@@ -1,13 +1,27 @@
 import tempfile
 from pathlib import Path
-from index import create_index, create_dict_of_files, write_dict_to_index
-from database import Database
+from index import create_index, create_dict_of_files, write_dict_to_index, have_files_changed
 import json
+from database import Database
+
+
+class MockDatabase:
+    def __init__(self, index_path=""):
+        self._index_path = index_path
+
+    def read_index_database(self, path):
+        return {}
+
+    def get_path(self, path):
+        if path == "index_path":
+            return self._index_path
+
+    def get_paths(self):
+        return []
 
 
 def test_create_dict_of_files():
-    dict_of_paths = {}
-    database = Database(dict_of_paths)
+    database = MockDatabase()
     with tempfile.TemporaryDirectory() as tmpdirname:
         with tempfile.NamedTemporaryFile(suffix=".txt", dir=tmpdirname) as file_handle1:
             file_handle1.write(b"This is a clean test file number 1")
@@ -21,10 +35,7 @@ def test_create_dict_of_files():
 
 def test_write_dict_to_index():
     with tempfile.TemporaryDirectory() as tmpdir_index:
-        dict_of_paths = {
-            "index_path": tmpdir_index
-        }
-        database = Database(dict_of_paths)
+        database = MockDatabase(tmpdir_index)
         dict_of_stuff = {
             "name1": {"1": "one", "2": "two"},
             "name2": {"3": "three"}
@@ -42,10 +53,7 @@ def test_write_dict_to_index():
 
 def test_create_index():
     with tempfile.TemporaryDirectory() as tmpdir_index:
-        dict_of_paths = {
-            "index_path": tmpdir_index
-        }
-        database = Database(dict_of_paths)
+        database = MockDatabase(tmpdir_index)
         with tempfile.TemporaryDirectory() as tmpdir_files:
             with tempfile.NamedTemporaryFile(suffix=".txt", dir=tmpdir_files) as file_handle1:
                 with tempfile.NamedTemporaryFile(suffix=".txt", dir=tmpdir_files) as file_handle2:
@@ -58,3 +66,9 @@ def test_create_index():
                             for file in index:
                                 list_of_file_paths_in_index.append(file)
                             assert file_handle1.name and file_handle2.name in list_of_file_paths_in_index
+
+
+def test_have_files_changed():
+    with tempfile.TemporaryDirectory() as tmpdir_index:
+        database = MockDatabase(tmpdir_index)
+        # with tempfile.NamedTemporaryFile()
