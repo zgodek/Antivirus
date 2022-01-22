@@ -25,13 +25,21 @@ args = parser.parse_args()
 def main(action, path):
     database = Database(read_config_paths())
     if action == 'full scan':
-        full_scan_result = full_scan(path, database)
-        print(full_scan_result[0])
-        write_dict_to_index(path, database, full_scan_result[1])
+        (list_of_inf_files, dict_of_updated_files) = full_scan(path, database)
+        if list_of_inf_files == []:
+            print("No viruses found.")
+        else:
+            for inf_file in list_of_inf_files:
+                print(inf_file)
+        write_dict_to_index(path, database, dict_of_updated_files)
     if action == 'quick scan':
-        quick_scan_result = quick_scan(path, database)
-        print(quick_scan_result[0])
-        write_dict_to_index(path, database, quick_scan_result[1])
+        (list_of_inf_files, dict_of_updated_files) = quick_scan(path, database)
+        if list_of_inf_files == []:
+            print("No viruses found.")
+        else:
+            for inf_file in list_of_inf_files:
+                print(inf_file)
+        write_dict_to_index(path, database, dict_of_updated_files)
     if action == 'create index':
         create_index(path, database)
     if action == 'update index':
