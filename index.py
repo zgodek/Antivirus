@@ -18,7 +18,7 @@ def create_dict_of_files(path, database, dict_of_files=None):
             file = File(item_path)
             dict_of_files[item_path] = {
                 "status": file.status(),
-                "hash_md5": str(file.hash_md5()),
+                "hash_md5": file.hash_md5(),
                 "last_scanned": None
             }
     return dict_of_files
@@ -52,13 +52,13 @@ def have_files_changed(path, database, dict_of_old_files=None):
                                                 > float(last_time_scanned)):
                     dict_of_old_files[item_path] = {
                         "status": file.status(),
-                        "hash_md5": str(file.hash_md5()),
+                        "hash_md5": file.hash_md5(),
                         "last_scanned": last_time_scanned
                     }
             else:
                 dict_of_old_files[item_path] = {
                     "status": file.status(),
-                    "hash_md5": str(file.hash_md5()),
+                    "hash_md5": file.hash_md5(),
                     "last_scanned": None
                 }
         else:
