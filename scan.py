@@ -59,7 +59,6 @@ def full_scan(path, database_fs, dict_of_files=None):
                 dict_of_files[item_path] = {
                     "status": status,
                     "hash_md5": str(file.hash_md5()),
-                    "hash_sh1": str(file.hash_sh1()),
                     "last_scanned": time.time()
                 }
     return (files_with_viruses, dict_of_files)
@@ -92,7 +91,7 @@ def quick_scan(path, database_qs, dict_of_files=None):
             file = File(item_path)
             try:
                 item_in_dict = dict_of_files[item_path]
-                if file.hash_sh1() != item_in_dict["hash_sh1"] or item_in_dict["status"] == file.status():
+                if file.hash_md5() != item_in_dict["hash_md5"] or item_in_dict["status"] == file.status():
                     check_file_results = check_file(item_path, database_qs)
                     if check_file_results[0] is True and check_file_results[1] == "N":
                         files_with_viruses.append(item_path)
@@ -111,7 +110,6 @@ def quick_scan(path, database_qs, dict_of_files=None):
                 dict_of_files[item_path] = {
                     "status": status,
                     "hash_md5": str(file.hash_md5()),
-                    "hash_sh1": str(file.hash_sh1()),
                     "last_scanned": time.time()
                 }
     return (files_with_viruses, dict_of_files)
