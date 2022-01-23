@@ -133,7 +133,7 @@ def check_file(path, virus_hashes_md5, virus_sequences):
         elif infected is True and found_virus_seq == []:
             anwser = input(f"Do you want to remove this infected file? {path} Y/N\n")
             if anwser == "Y":
-                remove_file(path)
+                os.remove(path)
     if anwser == "Y":
         anwser = True
     elif anwser == "N":
@@ -157,10 +157,6 @@ def check_file_fh(file_handle, virus_hashes_md5, virus_sequences):
             infected = True
             found_virus_seq.append(virus_sequence)
     return (infected, found_virus_seq)
-
-
-def remove_file(path):
-    os.remove(path)
 
 
 def fix_file(path, virus_sequence: bytes):
