@@ -1,5 +1,10 @@
 # Antivirus
 
+You need to have these python libraries installed:
+python-crontab
+
+The rest is in the Python Standard Library.
+
 To run this program properly you need to have listed files in one folder:
 file.py
 database.py
