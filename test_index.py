@@ -1,7 +1,8 @@
 import tempfile
-from pathlib import Path
+from pathlib import Path, PurePath
 from index import create_index, create_dict_of_files, write_dict_to_index, have_files_changed
 import json
+import time
 
 
 class MockDatabase:
@@ -9,7 +10,9 @@ class MockDatabase:
         self._index_path = index_path
 
     def read_index_database(self, path):
-        return {}
+        path = PurePath(path)
+        with open(self._index_path+path.name+"_index") as file_handle:
+            return json.load(file_handle)
 
     def get_path(self, path):
         if path == "index_path":
@@ -68,6 +71,27 @@ def test_create_index():
 
 
 def test_have_files_changed():
-    with tempfile.TemporaryDirectory() as tmpdir_index:
+    with tempfile.TemporaryDirectory() as tmpdir_index, \
+            tempfile.TemporaryDirectory() as dir_with_files, \
+            tempfile.NamedTemporaryFile(suffix=f"{dir_with_files}_index", mode="w+", dir=tmpdir_index) as file_handle_index, \
+            tempfile.NamedTemporaryFile(dir=dir_with_files) as file_handle1, \
+            tempfile.NamedTemporaryFile(dir=dir_with_files) as file_handle2:
         database = MockDatabase(tmpdir_index)
-        # with tempfile.NamedTemporaryFile()
+        index_dict = {
+            file_handle1.name: {
+                "status": "Clean",
+                "hash_md5": "some_hash",
+                "last_scanned": time.time()
+            },
+            file_handle2.name: {
+                "status": "Clean",
+                "hash_md5": "some_hash",
+                "last_scanned": time.time()
+            }
+        }
+        json.dump(index_dict, file_handle_index)
+        file_handle1.write(b"12323123213")
+        dict_of_files = have_files_changed(dir_with_files, database)
+        assert file_handle1.name and file_handle2.name in dict_of_files.keys()
+        assert dict_of_files[file_handle1.name]["status"] == "Unknown"
+        assert dict_of_files[file_handle2.name]["status"] == "Clean"
