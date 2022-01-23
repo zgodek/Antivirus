@@ -57,6 +57,16 @@ def test_database_read_virus_sequences():
         assert b"12345" and b"$#@#@#" in database.read_virus_sequences_database()
 
 
+def test_database_read_wrong_index():
+    with tempfile.TemporaryDirectory() as tmpdirindex:
+        dict_of_paths = {
+            "index_path": tmpdirindex
+        }
+        database = Database(dict_of_paths)
+        with pytest.raises(IndexError) as e:
+            database.read_index_database("fake_path")
+
+
 def test_database_read_index():
     with tempfile.TemporaryDirectory() as tmpdirindex, \
             tempfile.NamedTemporaryFile(mode="w+", suffix="folder_index", dir=tmpdirindex) as file_handle:
