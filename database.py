@@ -23,12 +23,19 @@ class Database:
         return self._dict_of_paths[which_path]
 
     def get_paths(self):
+        """
+        returns values from dict_of_paths as a list
+        """
         list_of_paths = []
         for path in self._dict_of_paths:
             list_of_paths.append(Path(self._dict_of_paths[path]))
         return list_of_paths
 
     def read_virus_database_md5(self):
+        """
+        reads hashes from files in a folder which path is saved in
+        self._dict_of_paths["virus_hashes_path"]
+        """
         path = self.get_path("virus_hashes_path")
         path_database = Path(path)
         list_of_hashes = []
@@ -44,6 +51,11 @@ class Database:
         return list_of_hashes
 
     def read_virus_sequences_database(self):
+        """
+        reads sequences of bytes from files in a folder which path is saved in
+        self._dict_of_paths["virus_sequences_path"] and then returns them
+        in a list
+        """
         path = self.get_path("virus_sequences_path")
         path_database = Path(path)
         list_of_sequences = []
@@ -53,6 +65,10 @@ class Database:
         return list_of_sequences
 
     def read_index_database(self, path):
+        """
+        reads an index of a given path from a folder of index files, which path
+        is saved in self._dict_of_paths["index_path"]
+        """
         path = PurePath(path)
         path = self.get_path("index_path")+f'/{path.name}_index'
         if not os.path.isfile(path):
