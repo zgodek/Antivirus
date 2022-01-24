@@ -5,6 +5,7 @@ from io import BytesIO, StringIO
 import pytest
 from scan import PathDoesntExistError
 import time
+import hashlib
 
 
 class MockDatabase:
@@ -58,6 +59,19 @@ def test_check_file_fh_infected_seq():
         database.read_virus_sequences_database())
     assert infected is True
     assert found_virus_seq == [b"aaa111"]
+
+
+def test_check_file_virus_hash():
+    database = MockDatabase()
+    byte_code = b"fdsfdfasdasd"
+    file_handle = BytesIO(byte_code)
+    hasher = hashlib.md5()
+    hasher.update(byte_code)
+    hash = hasher.hexdigest()
+    database.add_virus_hash(hash)
+    (infected, found_virus_seq) = check_file_fh(file_handle, database.read_virus_database_md5(), database.read_virus_sequences_database())
+    assert infected is True
+    assert found_virus_seq == []
 
 
 def test_check_file_clean_tempfile():
