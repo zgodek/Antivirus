@@ -92,7 +92,7 @@ def have_files_changed(path, database, dict_of_old_files=None):
 def update_index(path, database):
     """
     calls have_files_changed to have updated index of files
-    checks if a file which path is saved in the index wasn't removed
+    checks if a file, which path is saved in the index wasn't removed
     """
     if not os.path.isdir(path):
         raise PathHasToBeADirectoryError("A path to a directory is required.")
