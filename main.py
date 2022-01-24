@@ -1,3 +1,4 @@
+from random import choice
 from database import Database
 from scan import full_scan, quick_scan
 from index import create_index, update_index, write_dict_to_index
@@ -5,11 +6,6 @@ from cron_setup import enable_autoscan, disable_autoscan
 import argparse
 import json
 import os
-
-
-class WrongActionError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
 
 
 def read_config_paths():
@@ -30,54 +26,65 @@ parser = argparse.ArgumentParser(description="Perform a full scan, a quick" +
                                  " a path or enable and disable a regular" +
                                  " quick scan of a path which is performed in given" +
                                  " time intervals")
-parser.add_argument('action', choices=['full scan', 'quick scan', 'create index', 'update index', 'enable autoscan', 'disable autoscan'],
-                    type=str, help="What type of action do you" +
-                    " want to perform")
-parser.add_argument('path', type=str, help="Where do you want" +
-                    " to perform chosen action")
-parser.add_argument('time_interval', type=int, nargs='?', help="In what time" +
-                    " intervals (in minutes) do you want to perform quick" +
-                    " scan in chosen path")
+subparsers = parser.add_subparsers()
+scan_parser = subparsers.add_parser("scan", help="Perform one of possible scans")
+index_parser = subparsers.add_parser("index", help="Update or create an index")
+autoscan_parser = subparsers.add_parser("autoscan", help="Schedule future regular quick scans")
+scan_parser.add_argument("type_of_scan", choices=['quick', 'full'], help="Choose type of scan")
+index_parser.add_argument("type_of_index_operation", choices=['create', 'update'],
+                          help="Choose whether you want to create or update an index")
+autoscan_parser.add_argument("type_of_action", choices=['enable', 'disable'],
+                             help="Choose whether you want to enable or disable an autoscan of a path")
+scan_parser.add_argument("path", help="Where do you want to scan")
+index_parser.add_argument("path", help="Which ")
+autoscan_parser.add_argument("path")
+autoscan_parser.add_argument("time_interval", type=int)
 args = parser.parse_args()
 
 
-def main(action, path, time_interval=None):
+def main(command, type_of_action, path, time_interval=None):
     database = Database(read_config_paths())
-    if action == 'full scan':
-        (list_of_inf_files, dict_of_updated_files) = full_scan(path, database)
-        if list_of_inf_files == []:
-            print("No viruses found.")
-        else:
-            word = "viruses"
-            if len(list_of_inf_files) == 1:
-                word = "virus"
-            print(f"Found {word}:")
-            for inf_file in list_of_inf_files:
-                print(inf_file)
-        write_dict_to_index(path, database, dict_of_updated_files)
-    elif action == 'quick scan':
-        (list_of_inf_files, dict_of_updated_files) = quick_scan(path, database)
-        if list_of_inf_files == []:
-            print("No viruses found.")
-        else:
-            word = "viruses"
-            if len(list_of_inf_files) == 1:
-                word = "virus"
-            print(f"Found {word}:")
-            for inf_file in list_of_inf_files:
-                print(inf_file)
-        write_dict_to_index(path, database, dict_of_updated_files)
-    elif action == 'create index':
-        create_index(path, database)
-    elif action == 'update index':
-        update_index(path, database)
-    elif action == 'enable autoscan':
-        enable_autoscan(path, time_interval)
-    elif action == 'disable autoscan':
-        disable_autoscan(path)
-    else:
-        raise WrongActionError("The action you have chosen does not exist.")
+    if command == "scan":
+        if type_of_action == 'full':
+            (list_of_inf_files, dict_of_updated_files) = full_scan(path, database)
+            if list_of_inf_files == []:
+                print("No viruses found.")
+            else:
+                word = "viruses"
+                if len(list_of_inf_files) == 1:
+                    word = "virus"
+                print(f"Found {word} in:")
+                for inf_file in list_of_inf_files:
+                    print(inf_file)
+            write_dict_to_index(path, database, dict_of_updated_files)
+        elif type_of_action == 'quick':
+            (list_of_inf_files, dict_of_updated_files) = quick_scan(path, database)
+            if list_of_inf_files == []:
+                print("No viruses found.")
+            else:
+                word = "viruses"
+                if len(list_of_inf_files) == 1:
+                    word = "virus"
+                print(f"Found {word} in:")
+                for inf_file in list_of_inf_files:
+                    print(inf_file)
+            write_dict_to_index(path, database, dict_of_updated_files)
+    elif command == "index":
+        if type_of_action == 'create':
+            create_index(path, database)
+        elif type_of_action == 'update':
+            update_index(path, database)
+    elif command == "autoscan":
+        if type_of_action == 'enable':
+            enable_autoscan(path, time_interval)
+        elif type_of_action == 'disable':
+            disable_autoscan(path)
 
 
 if __name__ == "__main__":
-    main(args.action, args.path, args.time_interval)
+    if "type_of_scan" in args:
+        main("scan", args.type_of_scan, args.path)
+    elif "type_of_index_operation" in args:
+        main("index", args.type_of_index_operation, args.path)
+    elif "type_of_action" in args:
+        main("autoscan", args.type_of_action, args.path, args.time_interval)
