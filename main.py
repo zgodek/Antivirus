@@ -1,7 +1,7 @@
 from database import Database
 from scan import full_scan, quick_scan
 from index import create_index, update_index, write_dict_to_index
-from cron_setup import set_up_cron, disable_cron
+from cron_setup import enable_autoscan, disable_autoscan
 import argparse
 import json
 import os
@@ -13,6 +13,9 @@ class WrongActionError(Exception):
 
 
 def read_config_paths():
+    """
+    reads config_database.json file and returns its contents in a dictionary
+    """
     dict_of_paths = {}
     config_database_path = str(os.path.dirname(__file__)) + "/config_database.json"
     with open(config_database_path, 'r') as file_handle:
@@ -27,10 +30,10 @@ parser = argparse.ArgumentParser(description="Perform a full scan, a quick" +
                                  " a path or enable and disable a regular" +
                                  " quick scan of a path which is performed in given" +
                                  " time intervals")
-parser.add_argument('action', type=str, help="What type of action do you" +
-                    " want to perform: 'full scan', 'quick scan'," +
-                    " 'create index', 'update index', 'enable autoscan', 'disable autoscan'")
-parser.add_argument('path', type=str, nargs='?', help="Where do you want" +
+parser.add_argument('action', choices=['full scan', 'quick scan', 'create index', 'update index', 'enable autoscan', 'disable autoscan'],
+                    type=str, help="What type of action do you" +
+                    " want to perform")
+parser.add_argument('path', type=str, help="Where do you want" +
                     " to perform chosen action")
 parser.add_argument('time_interval', type=int, nargs='?', help="In what time" +
                     " intervals (in minutes) do you want to perform quick" +
@@ -69,9 +72,9 @@ def main(action, path, time_interval=None):
     elif action == 'update index':
         update_index(path, database)
     elif action == 'enable autoscan':
-        set_up_cron(path, time_interval)
+        enable_autoscan(path, time_interval)
     elif action == 'disable autoscan':
-        disable_cron(path)
+        disable_autoscan(path)
     else:
         raise WrongActionError("The action you have chosen does not exist.")
 
