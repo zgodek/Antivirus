@@ -13,6 +13,9 @@ class File:
         return self._status
 
     def hash_md5(self):
+        """
+        hashes file contents from the saved path in self._path
+        """
         path = self._path
         BLOCKSIZE = 65536
         hasher = hashlib.md5()
@@ -25,6 +28,9 @@ class File:
 
 
 def hash_md5_bytes(code_bytes: bytes):
+    """
+    hashes a code of bytes
+    """
     hasher = hashlib.md5()
     hasher.update(code_bytes)
     return hasher.hexdigest()
