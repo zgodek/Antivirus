@@ -4,9 +4,16 @@ from file import File
 import os
 
 
+class PathHasToBeADirectoryError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 def create_dict_of_files(path, database, dict_of_files=None):
     if dict_of_files is None:
         dict_of_files = {}
+    if not os.path.isdir(path):
+        raise PathHasToBeADirectoryError("A path to a directory is required.")
     path = Path(path)
     for item_path in path.iterdir():
         if item_path in database.get_paths():
@@ -67,9 +74,13 @@ def have_files_changed(path, database, dict_of_old_files=None):
 
 
 def update_index(path, database):
+    if not os.path.isdir(path):
+        raise PathHasToBeADirectoryError("A path to a directory is required.")
     dict_of_updated_files = have_files_changed(path, database)
     dict_of_not_erased_files = {}
     for item in dict_of_updated_files:
         if (Path(item).is_file()):
             dict_of_not_erased_files[item] = dict_of_updated_files[item]
     write_dict_to_index(path, database, dict_of_not_erased_files)
+
+
