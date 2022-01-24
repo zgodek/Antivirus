@@ -8,7 +8,7 @@ def enable_autoscan(path, how_many_minutes):
     """
     cron = CronTab(user=True)
     folder = os.path.dirname(__file__)
-    job = cron.new(command=f"python3 {folder}/main.py 'quick scan' '{path}'", comment=path+"_"+str(how_many_minutes))
+    job = cron.new(command=f"python3 {folder}/main.py scan quick '{path}'", comment=path+"_"+str(how_many_minutes))
     job.minute.every(how_many_minutes)
     cron.write()
 
