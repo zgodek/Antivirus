@@ -67,7 +67,7 @@ class Database:
     def read_index_database(self, path):
         """
         reads an index of a given path from a folder of index files, which path
-        is saved in self._dict_of_paths["index_path"]
+        is saved in self._dict_of_paths["index_path"] and returns its contents
         """
         path = PurePath(path)
         path = self.get_path("index_path")+f'/{path.name}_index'
