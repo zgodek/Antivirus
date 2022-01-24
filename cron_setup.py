@@ -15,4 +15,4 @@ def disable_cron(path):
     for job in cron:
         if job.comment == path:
             cron.remove(job)
-            cron.write()
+    cron.write()
