@@ -1,4 +1,3 @@
-from random import choice
 from database import Database
 from scan import full_scan, quick_scan
 from index import create_index, update_index, write_dict_to_index
