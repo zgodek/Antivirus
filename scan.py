@@ -58,26 +58,23 @@ def full_scan(path, database_fs, dict_of_files=None):
             status = anwsers.no_virus
             item_path = item_path.as_posix()
             file = File(item_path)
-            (has_virus, is_fixed) = check_file(item_path, virus_hashes_md5, virus_sequences)
-            if has_virus and not is_fixed:
+            (had_virus, removed) = check_file(item_path, virus_hashes_md5, virus_sequences)
+            if had_virus and not removed:
                 files_with_viruses.append(item_path)
                 status = anwsers.virus
-            elif has_virus:
+            elif had_virus:
                 files_with_viruses.append(item_path)
-            try:
+            if item_path in dict_of_files:
                 item_in_dict = dict_of_files[item_path]
-                if os.path.isfile(item_path):
-                    item_in_dict["status"] = status
-                    item_in_dict["last_scanned"] = time.time()
-                else:
-                    dict_of_files.pop(item_path)
-            except (TypeError, KeyError) as e:
-                if os.path.isfile(item_path):
-                    dict_of_files[item_path] = {
-                        "status": status,
-                        "hash_md5": file.hash_md5(),
-                        "last_scanned": time.time()
-                    }
+            else:
+                dict_of_files[item_path] = {}
+                item_in_dict = dict_of_files[item_path]
+            if os.path.isfile(item_path):
+                item_in_dict["status"] = status
+                item_in_dict["hash_md5"] = file.hash_md5()
+                item_in_dict["last_scanned"] = time.time()
+            else:
+                dict_of_files.pop(item_path)
     return (files_with_viruses, dict_of_files)
 
 
@@ -111,36 +108,29 @@ def quick_scan(path, database_qs, dict_of_files=None):
             if viruses_in_folder != []:
                 files_with_viruses.extend(viruses_in_folder)
         else:
-            status = anwsers.no_virus
             item_path = item_path.as_posix()
             file = File(item_path)
-            try:
+            file_hash = file.hash_md5()
+            if item_path in dict_of_files:
                 item_in_dict = dict_of_files[item_path]
-                if file.hash_md5() != item_in_dict["hash_md5"] or item_in_dict["status"] == file.status():
-                    (has_virus, user_decision) = check_file(item_path, virus_hashes_md5, virus_sequences)
-                    if has_virus and user_decision is False:
-                        files_with_viruses.append(item_path)
-                        status = anwsers.virus
-                    elif has_virus:
-                        files_with_viruses.append(item_path)
-                    if os.path.isfile(item_path):
-                        item_in_dict["status"] = status
-                        item_in_dict["last_scanned"] = time.time()
-                    else:
-                        dict_of_files.pop(item_path)
-            except (TypeError, KeyError) as e:
-                (has_virus, user_decision) = check_file(item_path, virus_hashes_md5, virus_sequences)
-                if has_virus and user_decision is False:
-                    files_with_viruses.append(item_path)
-                    status = anwsers.virus
-                elif has_virus:
-                    files_with_viruses.append(item_path)
-                if os.path.isfile(item_path):
-                    dict_of_files[item_path] = {
-                        "status": status,
-                        "hash_md5": file.hash_md5(),
-                        "last_scanned": time.time()
-                    }
+                if item_in_dict["hash_md5"] == file_hash and item_in_dict["status"] == anwsers.no_virus and item_in_dict["last_scanned"] is not None:
+                    continue
+            else:
+                dict_of_files[item_path] = {}
+                item_in_dict = dict_of_files[item_path]
+            (had_virus, removed) = check_file(item_path, virus_hashes_md5, virus_sequences)
+            status = anwsers.no_virus
+            if had_virus and removed is False:
+                files_with_viruses.append(item_path)
+                status = anwsers.virus
+            elif had_virus:
+                files_with_viruses.append(item_path)
+            if os.path.isfile(item_path):
+                item_in_dict["status"] = status
+                item_in_dict["hash_md5"] = file_hash
+                item_in_dict["last_scanned"] = time.time()
+            else:
+                dict_of_files.pop(item_path)
     return (files_with_viruses, dict_of_files)
 
 
