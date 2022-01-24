@@ -1,5 +1,5 @@
 import tempfile
-from pathlib import Path, PurePath
+from pathlib import Path
 from index import create_index, create_dict_of_files, write_dict_to_index, have_files_changed
 import json
 import time
