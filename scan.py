@@ -27,6 +27,12 @@ class WrongAnwserError(Exception):
 
 
 def full_scan(path, database_fs, dict_of_files=None):
+    """
+    goes through all of the files in the given directory and calls check_file function
+    for each to search for viruses; also updates status and time of the last scan of each file in
+    dict_of_files, which is read from the index for this directory, if an index for the scanned folder
+    doesn't exist it creates a new index; returns the list of infected files with the updated dict_of_files
+    """
     virus_hashes_md5 = database_fs.read_virus_database_md5()
     virus_sequences = database_fs.read_virus_sequences_database()
     if dict_of_files is None or dict_of_files == {}:
@@ -60,18 +66,28 @@ def full_scan(path, database_fs, dict_of_files=None):
                 files_with_viruses.append(item_path)
             try:
                 item_in_dict = dict_of_files[item_path]
-                item_in_dict["last_scanned"] = time.time()
-                item_in_dict["status"] = status
+                if os.path.isfile(item_path):
+                    item_in_dict["status"] = status
+                    item_in_dict["last_scanned"] = time.time()
+                else:
+                    dict_of_files.pop(item_path)
             except (TypeError, KeyError) as e:
-                dict_of_files[item_path] = {
-                    "status": status,
-                    "hash_md5": file.hash_md5(),
-                    "last_scanned": time.time()
-                }
+                if os.path.isfile(item_path):
+                    dict_of_files[item_path] = {
+                        "status": status,
+                        "hash_md5": file.hash_md5(),
+                        "last_scanned": time.time()
+                    }
     return (files_with_viruses, dict_of_files)
 
 
 def quick_scan(path, database_qs, dict_of_files=None):
+    """
+    reads a dict_of_files from an index and checks only those files which aren't in
+    the dict_of_files or which hashes have changed or which weren't scanned before;
+    also updates the index with the status of the file and current time;
+    returns the list of infected files with the updated dict_of_files
+    """
     virus_hashes_md5 = database_qs.read_virus_database_md5()
     virus_sequences = database_qs.read_virus_sequences_database()
     if not Path(path).exists():
@@ -107,8 +123,11 @@ def quick_scan(path, database_qs, dict_of_files=None):
                         status = anwsers.virus
                     elif has_virus:
                         files_with_viruses.append(item_path)
-                    item_in_dict["status"] = status
-                    item_in_dict["last_scanned"] = time.time()
+                    if os.path.isfile(item_path):
+                        item_in_dict["status"] = status
+                        item_in_dict["last_scanned"] = time.time()
+                    else:
+                        dict_of_files.pop(item_path)
             except (TypeError, KeyError) as e:
                 (has_virus, user_decision) = check_file(item_path, virus_hashes_md5, virus_sequences)
                 if has_virus and user_decision is False:
@@ -116,15 +135,20 @@ def quick_scan(path, database_qs, dict_of_files=None):
                     status = anwsers.virus
                 elif has_virus:
                     files_with_viruses.append(item_path)
-                dict_of_files[item_path] = {
-                    "status": status,
-                    "hash_md5": file.hash_md5(),
-                    "last_scanned": time.time()
-                }
+                if os.path.isfile(item_path):
+                    dict_of_files[item_path] = {
+                        "status": status,
+                        "hash_md5": file.hash_md5(),
+                        "last_scanned": time.time()
+                    }
     return (files_with_viruses, dict_of_files)
 
 
 def check_file(path, virus_hashes_md5, virus_sequences):
+    """
+    calls check_file_fh for information if a file is infected and if it is asks user what to do about it
+    returns information if a file was or still is infected and users decision
+    """
     anwser = None
     infected = False
     with open(path, 'rb') as file_handle:
@@ -148,6 +172,10 @@ def check_file(path, virus_hashes_md5, virus_sequences):
 
 
 def check_file_fh(file_handle, virus_hashes_md5, virus_sequences):
+    """
+    first checks if hash of byte sequence from the file matches any from the database,
+    then checks if the binary code of the file contains virus sequence in it
+    """
     infected = False
     found_virus_seq = []
     byte_sequence = file_handle.read()
@@ -164,6 +192,9 @@ def check_file_fh(file_handle, virus_hashes_md5, virus_sequences):
 
 
 def fix_file(path, virus_sequence: bytes):
+    """
+    removes given virus sequence in the file code from given path
+    """
     with open(path, 'rb') as file_handle:
         file_code = file_handle.read()
         file_code = file_code.replace(virus_sequence, b"")
