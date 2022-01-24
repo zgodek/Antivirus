@@ -10,6 +10,11 @@ class PathHasToBeADirectoryError(Exception):
 
 
 def create_dict_of_files(path, database, dict_of_files=None):
+    """
+    creates a dictionary of file paths found in the given directory path; those
+    file paths are keys to other dictionaries, containting status, hash and time
+    of the last scan of a file to which the path leads
+    """
     if dict_of_files is None:
         dict_of_files = {}
     if not os.path.isdir(path):
@@ -32,6 +37,10 @@ def create_dict_of_files(path, database, dict_of_files=None):
 
 
 def write_dict_to_index(path, database, dict_of_files):
+    """
+    saves given dictionary of files to a json file in the index folder, which path
+    is read from given database
+    """
     path = PurePath(path)
     index_path = database.get_path('index_path') \
                 + f'/{path.name}_index'
@@ -40,11 +49,18 @@ def write_dict_to_index(path, database, dict_of_files):
 
 
 def create_index(path, database):
+    """
+    creates a new index of a given path
+    """
     dict_of_files = create_dict_of_files(path, database)
     write_dict_to_index(path, database, dict_of_files)
 
 
 def have_files_changed(path, database, dict_of_old_files=None):
+    """
+    iterates a directory and checks if a file was ever scanned and if so, it checks if this file
+    was modified after being scanned
+    """
     if dict_of_old_files is None:
         dict_of_old_files = database.read_index_database(path)
     for item_path in Path(path).iterdir():
@@ -74,6 +90,10 @@ def have_files_changed(path, database, dict_of_old_files=None):
 
 
 def update_index(path, database):
+    """
+    calls have_files_changed to have updated index of files
+    checks if a file which path is saved in the index wasn't removed
+    """
     if not os.path.isdir(path):
         raise PathHasToBeADirectoryError("A path to a directory is required.")
     dict_of_updated_files = have_files_changed(path, database)
@@ -82,5 +102,3 @@ def update_index(path, database):
         if (Path(item).is_file()):
             dict_of_not_erased_files[item] = dict_of_updated_files[item]
     write_dict_to_index(path, database, dict_of_not_erased_files)
-
-
