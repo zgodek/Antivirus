@@ -1,5 +1,4 @@
 import tempfile
-from file import hash_md5_bytes
 from scan import check_file_fh, full_scan, quick_scan, check_file, fix_file
 from io import BytesIO, StringIO
 import pytest
@@ -107,7 +106,10 @@ def test_check_file_virusfile(monkeypatch):
         monkeypatch.setattr('sys.stdin', StringIO('N'))
         file_handle.write(b"AAAAAAAAAAAA")
         file_handle.seek(0)
-        database.add_virus_hash(hash_md5_bytes(b"AAAAAAAAAAAA"))
+        hasher = hashlib.md5()
+        hasher.update(b"AAAAAAAAAAAA")
+        hash = hasher.hexdigest()
+        database.add_virus_hash(hash)
         (is_infected, is_fixed) = check_file(
             file_handle.name,
             database.read_virus_database_md5(),
@@ -154,20 +156,29 @@ def test_full_scan_clean_with_index():
         file_handle1.seek(0)
         file_handle2.seek(0)
         file_handle3.seek(0)
+        hasher = hashlib.md5()
+        hasher.update(file_handle1.read())
+        hash1 = hasher.hexdigest()
+        hasher = hashlib.md5()
+        hasher.update(file_handle2.read())
+        hash2 = hasher.hexdigest()
+        hasher = hashlib.md5()
+        hasher.update(file_handle3.read())
+        hash3 = hasher.hexdigest()
         dict_of_files = {
             file_handle1.name: {
                 "status": "Unknown",
-                "hash_md5": hash_md5_bytes(file_handle1.read()),
+                "hash_md5": hash1,
                 "last_scanned": None
             },
             file_handle2.name: {
                 "status": "Unknown",
-                "hash_md5": hash_md5_bytes(file_handle2.read()),
+                "hash_md5": hash2,
                 "last_scanned": None
             },
             file_handle3.name: {
                 "status": "Unknown",
-                "hash_md5": hash_md5_bytes(file_handle3.read()),
+                "hash_md5": hash3,
                 "last_scanned": None
             }
         }
@@ -197,26 +208,34 @@ def test_full_scan_clean_with_recursion():
 
 def test_quick_scan():
     database = MockDatabase()
-    time_before_scan = time.time()
     with tempfile.TemporaryDirectory() as tempdir1, \
             tempfile.TemporaryDirectory(dir=tempdir1) as tempdir2, \
             tempfile.NamedTemporaryFile(dir=tempdir1) as file_handle1, \
             tempfile.NamedTemporaryFile(dir=tempdir2) as file_handle2:
+        hasher = hashlib.md5()
+        hasher.update(file_handle1.read())
+        hash1 = hasher.hexdigest()
+        hasher = hashlib.md5()
+        hasher.update(file_handle2.read())
+        hash2 = hasher.hexdigest()
         index = {
             file_handle1.name: {
                 "status": "Clean",
-                "hash_md5": "somehash1",
-                "last_scanned": None
+                "hash_md5": hash1,
+                "last_scanned": time.time()
             },
             file_handle2.name: {
                 "status": "Unknown",
-                "hash_md5": "somehash2",
+                "hash_md5": hash2,
                 "last_scanned": time.time()
             }
         }
+        time_before_scan = time.time()
+        time.sleep(0.01)
         (files_with_viruses, dict_of_files) = quick_scan(tempdir1, database, index)
         assert files_with_viruses == []
         assert file_handle1.name and file_handle2.name in dict_of_files.keys()
-        for file in dict_of_files:
-            assert dict_of_files[file]["status"] == "Clean"
-            assert dict_of_files[file]["last_scanned"] > time_before_scan
+        assert dict_of_files[file_handle1.name]["status"] == "Clean"
+        assert dict_of_files[file_handle2.name]["status"] == "Clean"
+        assert dict_of_files[file_handle2.name]["last_scanned"] > time_before_scan
+        assert dict_of_files[file_handle1.name]["last_scanned"] < time_before_scan
