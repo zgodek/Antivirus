@@ -22,15 +22,14 @@ def read_config_paths():
     return dict_of_paths
 
 
-parser = argparse.ArgumentParser(description="Perform a full scan: 'full scan'" +
-                                 " 'path' \n Perform a quick scan: 'quick scan' 'path'" +
-                                 "\nCreate an index: 'create index' 'path'" +
-                                 "\nUpdate an index: 'update index' 'path'\n" +
-                                 "Enable regular quick scan: 'enable autoscan'" +
-                                 " 'path' 'time inverval in minutes'\nDisable" +
-                                 " regular quick scan: 'disable autoscan' 'path'")
+parser = argparse.ArgumentParser(description="Perform a full scan, a quick" +
+                                 " scan, create an index, update an index of" +
+                                 " a path or enable and disable a regular" +
+                                 " quick scan of a path which is performed in given" +
+                                 " time intervals")
 parser.add_argument('action', type=str, help="What type of action do you" +
-                    " want to perform")
+                    " want to perform: 'full scan', 'quick scan'," +
+                    " 'create index', 'update index', 'enable autoscan', 'disable autoscan'")
 parser.add_argument('path', type=str, nargs='?', help="Where do you want" +
                     " to perform chosen action")
 parser.add_argument('time_interval', type=int, nargs='?', help="In what time" +
