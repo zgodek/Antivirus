@@ -20,6 +20,6 @@ Virus hashes have to be seperated by a newline, but they can be in one file or i
 
 Then you have to create a directory for index files.
 
-After creating those 3 directories, which can be located anywhere in the system, you have to enter their paths to config_database.json file.
+After creating those 3 directories, which can be located anywhere in the system (but one cannot contain another!), you have to enter their paths to config_database.json file.
 
 All of the instructions regarding actual usage of the antivirus can be found in python3 main.py --help.
