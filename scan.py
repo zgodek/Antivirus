@@ -1,5 +1,5 @@
 from pathlib import Path
-from index import create_index
+from index import create_index, PathHasToBeADirectoryError
 from file import File, hash_md5_bytes
 from database import IndexError
 import time
@@ -37,6 +37,8 @@ def full_scan(path, database_fs, dict_of_files=None):
             dict_of_files = database_fs.read_index_database(path)
     if not os.path.exists(path):
         raise PathDoesntExistError("This path does not exist.")
+    elif not os.path.isdir(path):
+        raise PathHasToBeADirectoryError("A path to a directory is required.")
     path = Path(path)
     files_with_viruses = []
     for item_path in path.iterdir():
@@ -74,6 +76,8 @@ def quick_scan(path, database_qs, dict_of_files=None):
     virus_sequences = database_qs.read_virus_sequences_database()
     if not Path(path).exists():
         raise PathDoesntExistError("This path does not exist.")
+    elif not os.path.isdir(path):
+        raise PathHasToBeADirectoryError("A path to a directory is required.")
     if dict_of_files is None:
         try:
             dict_of_files = database_qs.read_index_database(path)
