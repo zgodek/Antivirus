@@ -16,7 +16,10 @@ config_database.json
 
 You also need to have 2 different and seperate folders, one for virus hashes and one for virus sequences.
 In virus sequences folder each virus sequence has to be in a seperate file.
-Virus hashes have to be seperated by a newline, but they can be in a one file or in multiple.
+Virus hashes have to be seperated by a newline, but they can be in one file or in multiple.
 
-After creating those 3 different directories you have to enter their paths to config_database.json.
+Then you have to create a directory for index files.
+
+After creating those 3 directories, which can be located anywhere in the system, you have to enter their paths to config_database.json file.
+
 All of the instructions regarding actual usage of the antivirus can be found in python3 main.py --help.
