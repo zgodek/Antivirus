@@ -5,7 +5,6 @@ from io import BytesIO, StringIO
 import pytest
 from scan import PathDoesntExistError
 import time
-import json
 
 
 class MockDatabase:
