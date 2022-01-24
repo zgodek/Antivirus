@@ -27,18 +27,18 @@ parser = argparse.ArgumentParser(description="Perform a full scan, a quick" +
                                  " quick scan of a path which is performed in given" +
                                  " time intervals")
 subparsers = parser.add_subparsers()
-scan_parser = subparsers.add_parser("scan", help="Perform one of possible scans")
+scan_parser = subparsers.add_parser("scan", help="Perform quick scan or full scan")
 index_parser = subparsers.add_parser("index", help="Update or create an index")
-autoscan_parser = subparsers.add_parser("autoscan", help="Schedule future regular quick scans")
+autoscan_parser = subparsers.add_parser("autoscan", help="Schedule regular quick scans")
 scan_parser.add_argument("type_of_scan", choices=['quick', 'full'], help="Choose type of scan")
 index_parser.add_argument("type_of_index_operation", choices=['create', 'update'],
                           help="Choose whether you want to create or update an index")
 autoscan_parser.add_argument("type_of_action", choices=['enable', 'disable'],
                              help="Choose whether you want to enable or disable an autoscan of a path")
-scan_parser.add_argument("path", help="Where do you want to scan")
-index_parser.add_argument("path", help="Which ")
-autoscan_parser.add_argument("path")
-autoscan_parser.add_argument("time_interval", type=int)
+scan_parser.add_argument("path", help="Where do you want to perform a scan")
+index_parser.add_argument("path", help="Of which path do you want to create or update an index")
+autoscan_parser.add_argument("path", help="Which path do you want to scan regularly")
+autoscan_parser.add_argument("time_interval", type=int, help="How many minutes have to pass inbetween each regular quick scan of chosen path")
 args = parser.parse_args()
 
 
@@ -78,7 +78,7 @@ def main(command, type_of_action, path, time_interval=None):
         if type_of_action == 'enable':
             enable_autoscan(path, time_interval)
         elif type_of_action == 'disable':
-            disable_autoscan(path)
+            disable_autoscan(path, time_interval)
 
 
 if __name__ == "__main__":
